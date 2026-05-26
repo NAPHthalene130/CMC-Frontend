@@ -1,69 +1,231 @@
 <template>
-  <div class="page">
-    <el-card>
-      <template #header><span>起草合同</span></template>
-      <el-form :model="form" :rules="rules" ref="formRef" label-width="100px">
+  <div class="draft-page">
+    <PageHeader title="起草合同" description="创建新的合同草稿并提交审批流程" />
+
+    <div class="draft-content">
+      <div class="contract-num-preview">
+        <span class="num-label">合同编号预览</span>
+        <span class="num-value">{{ contractNumPreview }}</span>
+      </div>
+
+      <el-form :model="form" :rules="rules" ref="formRef" label-width="100px" class="draft-form">
         <el-form-item label="合同名称" prop="name">
-          <el-input v-model="form.name" placeholder="请输入合同名称" />
+          <el-input v-model="form.name" placeholder="请输入合同名称" maxlength="100" show-word-limit />
         </el-form-item>
+
         <el-form-item label="客户" prop="customerId">
-          <el-select v-model="form.customerId" placeholder="请选择客户" clearable filterable>
+          <el-select v-model="form.customerId" placeholder="请选择客户" filterable clearable class="full-width">
             <el-option v-for="c in customers" :key="c.id" :label="c.name" :value="c.id" />
           </el-select>
         </el-form-item>
+
         <el-form-item label="开始时间" prop="beginTime">
-          <el-date-picker v-model="form.beginTime" type="date" placeholder="yyyy-MM-dd" />
+          <el-date-picker v-model="form.beginTime" type="date" placeholder="选择开始时间" class="full-width" />
         </el-form-item>
+
         <el-form-item label="结束时间" prop="endTime">
-          <el-date-picker v-model="form.endTime" type="date" placeholder="yyyy-MM-dd" />
+          <el-date-picker v-model="form.endTime" type="date" placeholder="选择结束时间" class="full-width" />
         </el-form-item>
+
         <el-form-item label="合同内容" prop="content">
-          <el-input v-model="form.content" type="textarea" :rows="6" placeholder="请输入合同内容" />
+          <el-input v-model="form.content" type="textarea" :rows="8" placeholder="请输入合同详细内容" maxlength="5000" show-word-limit />
         </el-form-item>
+
         <el-form-item label="附件">
-          <el-upload :auto-upload="false" :limit="1">
-            <el-button type="primary">上传附件</el-button>
-            <template #tip><span class="tip">支持 doc、jpg、png、bmp、gif 格式</span></template>
+          <el-upload ref="uploadRef" :auto-upload="false" :limit="1" :on-change="handleFileChange" :on-remove="handleFileRemove"
+            accept=".doc,.docx,.jpg,.jpeg,.png,.bmp,.gif" drag>
+            <el-icon class="upload-icon"><UploadFilled /></el-icon>
+            <div class="upload-text">将文件拖到此处或<em>点击上传</em></div>
+            <template #tip>
+              <div class="upload-tip">支持 doc、jpg、png、bmp、gif 格式，单个文件</div>
+            </template>
           </el-upload>
         </el-form-item>
+
         <el-form-item>
-          <el-button type="primary" @click="handleSubmit">提交</el-button>
-          <el-button @click="formRef.resetFields()">重置</el-button>
+          <el-button type="primary" @click="handleSubmit" :loading="submitting">提交草稿</el-button>
+          <el-button @click="handleReset">重置表单</el-button>
         </el-form-item>
       </el-form>
-    </el-card>
+
+      <el-collapse class="template-section">
+        <el-collapse-item title="从模板创建" name="template">
+          <EmptyState description="模板功能开发中，敬请期待" />
+        </el-collapse-item>
+      </el-collapse>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { reactive, ref } from 'vue'
-import { draftContract } from '@/api/contract'
+import { ref, reactive, computed, onMounted } from 'vue'
+import { UploadFilled } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
+import { draftContract } from '@/api/contract'
+import { getCustomers } from '@/api/customer'
+import PageHeader from '@/components/common/PageHeader.vue'
+import EmptyState from '@/components/common/EmptyState.vue'
 
 const formRef = ref(null)
+const uploadRef = ref(null)
+const submitting = ref(false)
+const customers = ref([])
+const uploadedFile = ref(null)
+
 const form = reactive({
-  name: '', customerId: null, beginTime: '', endTime: '', content: ''
+  name: '',
+  customerId: null,
+  beginTime: '',
+  endTime: '',
+  content: ''
 })
+
+const contractNumPreview = computed(() => {
+  const now = new Date()
+  const y = now.getFullYear()
+  const m = String(now.getMonth() + 1).padStart(2, '0')
+  const d = String(now.getDate()).padStart(2, '0')
+  return `HT-${y}${m}${d}-XXX`
+})
+
+const validateEndTime = (_rule, value, callback) => {
+  if (value && form.beginTime && new Date(value) <= new Date(form.beginTime)) {
+    callback(new Error('结束时间必须晚于开始时间'))
+  } else {
+    callback()
+  }
+}
+
 const rules = {
   name: [{ required: true, message: '合同名称不能为空', trigger: 'blur' }],
+  customerId: [{ required: true, message: '请选择客户', trigger: 'change' }],
   beginTime: [{ required: true, message: '开始时间不能为空', trigger: 'change' }],
-  endTime: [{ required: true, message: '结束时间不能为空', trigger: 'change' }],
+  endTime: [
+    { required: true, message: '结束时间不能为空', trigger: 'change' },
+    { validator: validateEndTime, trigger: 'change' }
+  ],
   content: [{ required: true, message: '合同内容不能为空', trigger: 'blur' }]
 }
-const customers = ref([])
+
+const loadCustomers = async () => {
+  try {
+    const res = await getCustomers({ pageSize: 1000 })
+    customers.value = res.data?.records || []
+  } catch { /* handled by interceptor */ }
+}
+
+const handleFileChange = (file) => {
+  uploadedFile.value = file.raw
+}
+
+const handleFileRemove = () => {
+  uploadedFile.value = null
+}
+
+const handleReset = () => {
+  formRef.value?.resetFields()
+  uploadRef.value?.clearFiles()
+  uploadedFile.value = null
+}
 
 const handleSubmit = async () => {
   const valid = await formRef.value.validate().catch(() => false)
   if (!valid) return
+
+  submitting.value = true
   try {
-    await draftContract(form)
-    ElMessage.success('起草成功！')
-    formRef.value.resetFields()
-  } catch { /* handled by interceptor */ }
+    const formData = new FormData()
+    formData.append('name', form.name)
+    formData.append('customerId', form.customerId)
+    formData.append('beginTime', form.beginTime)
+    formData.append('endTime', form.endTime)
+    formData.append('content', form.content)
+    if (uploadedFile.value) {
+      formData.append('file', uploadedFile.value)
+    }
+    await draftContract(formData)
+    ElMessage.success('合同草稿创建成功！')
+    handleReset()
+  } catch {
+    ElMessage.error('创建失败，请重试')
+  } finally {
+    submitting.value = false
+  }
 }
+
+onMounted(() => {
+  loadCustomers()
+})
 </script>
 
 <style scoped>
-.page { max-width: 800px; margin: 0 auto; }
-.tip { color: #999; font-size: 12px; margin-left: 8px; }
+.draft-page {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.draft-content {
+  background: var(--c-surface);
+  border-radius: var(--radius-md);
+  padding: 24px;
+  box-shadow: var(--shadow-sm);
+}
+
+.contract-num-preview {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: var(--c-pri-light);
+  border-radius: var(--radius-sm);
+  margin-bottom: 24px;
+}
+
+.num-label {
+  font-size: 13px;
+  color: var(--c-text2);
+}
+
+.num-value {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--c-pri);
+  letter-spacing: 1px;
+}
+
+.draft-form {
+  max-width: 640px;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.upload-icon {
+  font-size: 36px;
+  color: var(--c-border);
+}
+
+.upload-text {
+  font-size: 13px;
+  color: var(--c-text2);
+  margin-top: 8px;
+}
+
+.upload-text em {
+  color: var(--c-pri);
+  font-style: normal;
+}
+
+.upload-tip {
+  font-size: 12px;
+  color: var(--c-text2);
+  margin-top: 4px;
+}
+
+.template-section {
+  margin-top: 24px;
+  border-top: 1px solid var(--c-border-light);
+  padding-top: 8px;
+}
 </style>
