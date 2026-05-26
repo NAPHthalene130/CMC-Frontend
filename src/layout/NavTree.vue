@@ -22,7 +22,7 @@
 <script setup>
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
-import { useUserStore } from '@/stores/index'
+import { useAuthStore } from '@/stores/auth'
 import { useTabsStore } from '@/stores/tabs'
 import {
   Document, Edit, Clock, Checked, List, View, Search, Connection,
@@ -30,7 +30,7 @@ import {
 } from '@element-plus/icons-vue'
 
 const route = useRoute()
-const userStore = useUserStore()
+const userStore = useAuthStore()
 const tabsStore = useTabsStore()
 
 const isAdmin = computed(() => userStore.role === 'ADMIN')

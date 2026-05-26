@@ -83,12 +83,12 @@
 <script setup>
 import { computed, ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { useUserStore } from '@/stores/index'
+import { useAuthStore } from '@/stores/auth'
 import { ElMessage } from 'element-plus'
 
 const router = useRouter()
 const route = useRoute()
-const userStore = useUserStore()
+const userStore = useAuthStore()
 const isCollapse = ref(false)
 
 const username = computed(() => userStore.userInfo?.username || '用户')

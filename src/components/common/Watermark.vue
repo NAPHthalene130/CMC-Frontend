@@ -4,9 +4,9 @@
 
 <script setup>
 import { ref, onMounted, onBeforeUnmount, watch } from 'vue'
-import { useUserStore } from '@/stores/index'
+import { useAuthStore } from '@/stores/auth'
 
-const userStore = useUserStore()
+const userStore = useAuthStore()
 const containerRef = ref(null)
 let observer = null
 

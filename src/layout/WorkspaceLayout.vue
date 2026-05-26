@@ -40,7 +40,7 @@
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
-import { useUserStore } from '@/stores/index'
+import { useAuthStore } from '@/stores/auth'
 import BrandHeader from './BrandHeader.vue'
 import TabBar from './TabBar.vue'
 import NavTree from './NavTree.vue'
@@ -49,7 +49,7 @@ import { ArrowDown, User, Moon, SwitchButton } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 
 const router = useRouter()
-const userStore = useUserStore()
+const userStore = useAuthStore()
 const showMenu = ref(false)
 const userRef = ref(null)
 
