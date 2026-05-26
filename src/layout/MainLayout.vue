@@ -5,8 +5,14 @@
         <span v-if="!isCollapse">合同管理系统</span>
         <span v-else>CMS</span>
       </div>
-      <el-menu :default-active="activeMenu" :collapse="isCollapse" router
-               background-color="#304156" text-color="#bfcbd9" active-text-color="#409EFF">
+      <el-menu
+        :default-active="activeMenu"
+        :collapse="isCollapse"
+        router
+        background-color="var(--c-pri-dark)"
+        text-color="#bfcbd9"
+        active-text-color="#e8f5e9"
+      >
         <el-menu-item index="/home">
           <el-icon><HomeFilled /></el-icon>
           <span>首页</span>
@@ -78,7 +84,6 @@
 import { computed, ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useUserStore } from '@/stores/index'
-import { logout as apiLogout } from '@/api/auth'
 import { ElMessage } from 'element-plus'
 
 const router = useRouter()
@@ -92,8 +97,7 @@ const isOperator = computed(() => userStore.role === 'OPERATOR' || userStore.rol
 const activeMenu = computed(() => route.path)
 
 const handleLogout = async () => {
-  await apiLogout()
-  userStore.logout()
+  await userStore.logout()
   router.push('/login')
   ElMessage.success('已退出登录')
 }
@@ -101,11 +105,32 @@ const handleLogout = async () => {
 
 <style scoped>
 .main-layout { height: 100vh; }
-.sidebar { background: #304156; overflow-y: auto; transition: width 0.3s; }
-.logo { height: 60px; line-height: 60px; text-align: center; color: #fff; font-size: 18px; font-weight: bold; cursor: pointer; }
+.sidebar {
+  background: var(--c-pri-dark);
+  overflow-y: auto;
+  transition: width 0.3s;
+}
+.logo {
+  height: 60px;
+  line-height: 60px;
+  text-align: center;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  letter-spacing: 2px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
 .logo span { white-space: nowrap; }
-.topbar { display: flex; align-items: center; justify-content: space-between; background: #fff; border-bottom: 1px solid #e6e6e6; height: 60px; }
-.collapse-btn { font-size: 20px; cursor: pointer; }
-.greeting { margin-right: 16px; color: #666; }
-.content { background: #f5f5f5; padding: 20px; }
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--c-surface);
+  border-bottom: 1px solid var(--c-border-light);
+  height: 56px;
+}
+.collapse-btn { font-size: 20px; cursor: pointer; color: var(--c-text2); }
+.greeting { margin-right: 16px; color: var(--c-text2); font-size: 13px; }
+.content { background: var(--c-bg); padding: var(--sp-2xl); }
 </style>

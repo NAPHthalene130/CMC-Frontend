@@ -8,12 +8,13 @@ const request = axios.create({
 
 request.interceptors.request.use(
   (config) => {
-    // Attach token from localStorage (or Pinia store)
+    const token = localStorage.getItem('token')
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`
+    }
     return config
   },
-  (error) => {
-    return Promise.reject(error)
-  }
+  (error) => Promise.reject(error)
 )
 
 request.interceptors.response.use(
@@ -27,7 +28,12 @@ request.interceptors.response.use(
   },
   (error) => {
     if (error.response?.status === 401) {
+      localStorage.removeItem('token')
+      localStorage.removeItem('userInfo')
+      localStorage.removeItem('role')
+      localStorage.removeItem('permissions')
       ElMessage.error('登录已过期，请重新登录')
+      setTimeout(() => { window.location.href = '/login' }, 1000)
     } else {
       ElMessage.error(error.message || '网络异常')
     }
