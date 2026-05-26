@@ -26,7 +26,7 @@ import { useUserStore } from '@/stores/index'
 import { useTabsStore } from '@/stores/tabs'
 import {
   Document, Edit, Clock, Checked, List, View, Search, Connection,
-  UserFilled, Setting, Opera, Files
+  UserFilled, Setting, HomeFilled, Files
 } from '@element-plus/icons-vue'
 
 const route = useRoute()
@@ -42,7 +42,7 @@ const navGroups = computed(() => {
   groups.push({
     title: '',
     items: [
-      { path: '/home', label: '工作台', icon: Opera }
+      { path: '/home', label: '工作台', icon: HomeFilled }
     ]
   })
 
