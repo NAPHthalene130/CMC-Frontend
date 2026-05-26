@@ -20,7 +20,7 @@ const routes = [
   },
   {
     path: '/',
-    component: () => import('@/layout/MainLayout.vue'),
+    component: () => import('@/layout/WorkspaceLayout.vue'),
     meta: { requiresAuth: true },
     children: [
       {
