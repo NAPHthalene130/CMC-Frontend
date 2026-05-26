@@ -52,10 +52,11 @@
 </template>
 
 <script setup>
-import { ref, onMounted, nextTick } from 'vue'
+import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { useTabsStore } from '@/stores/tabs'
 import { getContracts } from '@/api/contract'
+import { getDashboardStats } from '@/api/statistics'
 import StatCard from '@/components/common/StatCard.vue'
 import StatusTag from '@/components/common/StatusTag.vue'
 import EmptyState from '@/components/common/EmptyState.vue'
@@ -66,6 +67,8 @@ const tabsStore = useTabsStore()
 const loading = ref(false)
 const pieChartRef = ref(null)
 const lineChartRef = ref(null)
+let pieChart = null
+let lineChart = null
 
 const stats = ref({
   totalContracts: 0,
@@ -100,16 +103,20 @@ const goContractQuery = () => {
 const loadData = async () => {
   loading.value = true
   try {
-    const res = await getContracts({ page: 1, pageSize: 5 })
-    if (res.data?.records) {
-      recentContracts.value = res.data.records
+    const [contractRes, statsRes] = await Promise.all([
+      getContracts({ page: 1, pageSize: 5 }),
+      getDashboardStats()
+    ])
+    if (contractRes.data?.records) {
+      recentContracts.value = contractRes.data.records
     }
-
-    stats.value = {
-      totalContracts: res.data?.total || 0,
-      pendingTasks: 0,
-      completedToday: 0,
-      expiringSoon: 0
+    if (statsRes.data) {
+      stats.value = {
+        totalContracts: statsRes.data.totalContracts || 0,
+        pendingTasks: statsRes.data.pendingTasks || 0,
+        completedToday: statsRes.data.completedToday || 0,
+        expiringSoon: statsRes.data.expiringSoon || 0
+      }
     }
   } catch {
     /* handled */
@@ -119,8 +126,9 @@ const loadData = async () => {
 
 const initPieChart = () => {
   if (!pieChartRef.value) return
-  const chart = echarts.init(pieChartRef.value)
-  chart.setOption({
+  if (pieChart) pieChart.dispose()
+  pieChart = echarts.init(pieChartRef.value)
+  pieChart.setOption({
     tooltip: { trigger: 'item' },
     legend: { bottom: 0, textStyle: { fontSize: 11, color: '#6b7c6e' } },
     color: ['#2d6a4f', '#40916c', '#52b788', '#95d5b2', '#e8f5e9'],
@@ -139,19 +147,19 @@ const initPieChart = () => {
       ]
     }]
   })
-  window.addEventListener('resize', () => chart.resize())
 }
 
 const initLineChart = () => {
   if (!lineChartRef.value) return
-  const chart = echarts.init(lineChartRef.value)
-  const months = ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月']
-  chart.setOption({
+  if (lineChart) lineChart.dispose()
+  lineChart = echarts.init(lineChartRef.value)
+  const months = ['1月', '2月', '3月', '4月', '5月', '6月']
+  lineChart.setOption({
     tooltip: { trigger: 'axis' },
     grid: { left: 40, right: 20, top: 20, bottom: 30 },
     xAxis: {
       type: 'category',
-      data: months.slice(0, 6),
+      data: months,
       axisLine: { lineStyle: { color: '#e8ede5' } },
       axisLabel: { color: '#6b7c6e', fontSize: 11 }
     },
@@ -171,7 +179,6 @@ const initLineChart = () => {
       itemStyle: { color: '#2d6a4f' }
     }]
   })
-  window.addEventListener('resize', () => chart.resize())
 }
 
 onMounted(async () => {
@@ -179,6 +186,11 @@ onMounted(async () => {
   await nextTick()
   initPieChart()
   initLineChart()
+})
+
+onBeforeUnmount(() => {
+  if (pieChart) { pieChart.dispose(); pieChart = null }
+  if (lineChart) { lineChart.dispose(); lineChart = null }
 })
 </script>
 
