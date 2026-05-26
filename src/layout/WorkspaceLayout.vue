@@ -1,5 +1,6 @@
 <template>
   <div class="workspace-layout">
+    <Watermark />
     <div class="top-bar">
       <div class="top-left">
         <BrandHeader />
@@ -43,6 +44,7 @@ import { useUserStore } from '@/stores/index'
 import BrandHeader from './BrandHeader.vue'
 import TabBar from './TabBar.vue'
 import NavTree from './NavTree.vue'
+import Watermark from '@/components/common/Watermark.vue'
 import { ArrowDown, User, Moon, SwitchButton } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 
