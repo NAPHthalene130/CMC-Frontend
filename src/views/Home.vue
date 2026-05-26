@@ -52,11 +52,11 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue'
+import { ref, onMounted, onBeforeUnmount, nextTick, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useTabsStore } from '@/stores/tabs'
 import { getContracts } from '@/api/contract'
-import { getDashboardStats } from '@/api/statistics'
+import { getDashboardStats, getContractStatusDist, getMonthlyTrend, getExpiringContracts } from '@/api/statistics'
 import StatCard from '@/components/common/StatCard.vue'
 import StatusTag from '@/components/common/StatusTag.vue'
 import EmptyState from '@/components/common/EmptyState.vue'
@@ -79,6 +79,8 @@ const stats = ref({
 
 const recentContracts = ref([])
 const expiringContracts = ref([])
+const pieData = ref([])
+const lineData = ref([])
 
 const statusType = (row) => {
   const map = { 1: 'draft', 2: 'countersigning', 3: 'success', 4: 'approving', 5: 'success' }
@@ -103,9 +105,12 @@ const goContractQuery = () => {
 const loadData = async () => {
   loading.value = true
   try {
-    const [contractRes, statsRes] = await Promise.all([
+    const [contractRes, statsRes, statusRes, trendRes, expiringRes] = await Promise.all([
       getContracts({ page: 1, pageSize: 5 }),
-      getDashboardStats()
+      getDashboardStats(),
+      getContractStatusDist(),
+      getMonthlyTrend(),
+      getExpiringContracts()
     ])
     if (contractRes.data?.records) {
       recentContracts.value = contractRes.data.records
@@ -118,6 +123,21 @@ const loadData = async () => {
         expiringSoon: statsRes.data.expiringSoon || 0
       }
     }
+    if (statusRes.data) {
+      pieData.value = statusRes.data.map(item => ({
+        value: item.value || 0,
+        name: item.name
+      }))
+    }
+    if (trendRes.data) {
+      lineData.value = trendRes.data
+    }
+    if (expiringRes.data) {
+      expiringContracts.value = expiringRes.data.map(item => ({
+        ...item,
+        daysLeft: Math.max(0, Math.ceil((new Date(item.endTime) - new Date()) / (1000 * 60 * 60 * 24)))
+      }))
+    }
   } catch {
     /* handled */
   }
@@ -128,6 +148,10 @@ const initPieChart = () => {
   if (!pieChartRef.value) return
   if (pieChart) pieChart.dispose()
   pieChart = echarts.init(pieChartRef.value)
+  const chartData = pieData.value.length > 0 ? pieData.value : [
+    { value: 0, name: '起草中' }, { value: 0, name: '会签完成' },
+    { value: 0, name: '定稿完成' }, { value: 0, name: '审批完成' }, { value: 0, name: '签订完成' }
+  ]
   pieChart.setOption({
     tooltip: { trigger: 'item' },
     legend: { bottom: 0, textStyle: { fontSize: 11, color: '#6b7c6e' } },
@@ -138,13 +162,7 @@ const initPieChart = () => {
       center: ['50%', '45%'],
       label: { show: false },
       itemStyle: { borderColor: '#fff', borderWidth: 2 },
-      data: [
-        { value: 3, name: '起草中' },
-        { value: 2, name: '会签中' },
-        { value: 1, name: '待定稿' },
-        { value: 2, name: '审批中' },
-        { value: 5, name: '已完成' }
-      ]
+      data: chartData
     }]
   })
 }
@@ -153,7 +171,12 @@ const initLineChart = () => {
   if (!lineChartRef.value) return
   if (lineChart) lineChart.dispose()
   lineChart = echarts.init(lineChartRef.value)
-  const months = ['1月', '2月', '3月', '4月', '5月', '6月']
+  const months = lineData.value.length > 0
+    ? lineData.value.map(item => item.month)
+    : ['1月', '2月', '3月', '4月', '5月', '6月']
+  const counts = lineData.value.length > 0
+    ? lineData.value.map(item => item.count || 0)
+    : [0, 0, 0, 0, 0, 0]
   lineChart.setOption({
     tooltip: { trigger: 'axis' },
     grid: { left: 40, right: 20, top: 20, bottom: 30 },
@@ -172,7 +195,7 @@ const initLineChart = () => {
     series: [{
       type: 'line',
       smooth: true,
-      data: [2, 4, 3, 5, 4, 6],
+      data: counts,
       areaStyle: { color: { type: 'linear', x: 0, y: 0, x2: 0, y2: 1,
         colorStops: [{ offset: 0, color: 'rgba(45,106,79,0.15)' }, { offset: 1, color: 'rgba(45,106,79,0)' }] } },
       lineStyle: { width: 2 },

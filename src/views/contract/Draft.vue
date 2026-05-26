@@ -48,9 +48,22 @@
         </el-form-item>
       </el-form>
 
-      <el-collapse class="template-section">
-        <el-collapse-item title="从模板创建" name="template">
-          <EmptyState description="模板功能开发中，敬请期待" />
+      <el-collapse class="template-section" v-if="templates.length > 0">
+        <el-collapse-item title="从模板创建（智能填充）" name="template">
+          <div class="template-grid">
+            <div
+              v-for="tpl in templates"
+              :key="tpl.id"
+              class="template-card"
+              @click="applyTemplate(tpl)"
+            >
+              <div class="tpl-name">{{ tpl.name }}</div>
+              <div class="tpl-category" v-if="tpl.category">
+                <StatusTag :text="tpl.category" type="info" />
+              </div>
+              <div class="tpl-desc" v-if="tpl.description">{{ tpl.description }}</div>
+            </div>
+          </div>
         </el-collapse-item>
       </el-collapse>
     </div>
@@ -63,13 +76,17 @@ import { UploadFilled } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { draftContract } from '@/api/contract'
 import { getCustomers } from '@/api/customer'
+import { getTemplateList } from '@/api/template'
+import { uploadFile } from '@/api/file'
 import PageHeader from '@/components/common/PageHeader.vue'
 import EmptyState from '@/components/common/EmptyState.vue'
+import StatusTag from '@/components/common/StatusTag.vue'
 
 const formRef = ref(null)
 const uploadRef = ref(null)
 const submitting = ref(false)
 const customers = ref([])
+const templates = ref([])
 const uploadedFile = ref(null)
 
 const form = reactive({
@@ -114,6 +131,29 @@ const loadCustomers = async () => {
   } catch { /* handled by interceptor */ }
 }
 
+const loadTemplates = async () => {
+  try {
+    const res = await getTemplateList()
+    templates.value = res.data || []
+  } catch { /* handled */ }
+}
+
+const applyTemplate = (tpl) => {
+  form.name = tpl.name
+  form.content = tpl.content || ''
+  const selectedCustomer = customers.value.find(c => c.id === form.customerId)
+  if (selectedCustomer && form.content) {
+    form.content = form.content
+      .replace(/\{\{客户名称\}\}/g, selectedCustomer.name || '')
+      .replace(/\{\{客户地址\}\}/g, selectedCustomer.address || '')
+      .replace(/\{\{客户电话\}\}/g, selectedCustomer.tel || '')
+      .replace(/\{\{银行名称\}\}/g, selectedCustomer.bank || '')
+      .replace(/\{\{银行账号\}\}/g, selectedCustomer.account || '')
+      .replace(/\{\{签订日期\}\}/g, new Date().toLocaleDateString('zh-CN'))
+  }
+  ElMessage.success('模板已应用，请确认并调整内容后提交')
+}
+
 const handleFileChange = (file) => {
   uploadedFile.value = file.raw
 }
@@ -134,16 +174,20 @@ const handleSubmit = async () => {
 
   submitting.value = true
   try {
-    const formData = new FormData()
-    formData.append('name', form.name)
-    formData.append('customerId', form.customerId)
-    formData.append('beginTime', form.beginTime)
-    formData.append('endTime', form.endTime)
-    formData.append('content', form.content)
-    if (uploadedFile.value) {
-      formData.append('file', uploadedFile.value)
+    const contractData = {
+      name: form.name,
+      customerId: form.customerId,
+      beginTime: form.beginTime,
+      endTime: form.endTime,
+      content: form.content
     }
-    await draftContract(formData)
+    const res = await draftContract(contractData)
+    if (uploadedFile.value && res.data?.id) {
+      const fileFormData = new FormData()
+      fileFormData.append('file', uploadedFile.value)
+      fileFormData.append('contractId', res.data.id)
+      await uploadFile(fileFormData)
+    }
     ElMessage.success('合同草稿创建成功！')
     handleReset()
   } catch {
@@ -155,6 +199,7 @@ const handleSubmit = async () => {
 
 onMounted(() => {
   loadCustomers()
+  loadTemplates()
 })
 </script>
 
@@ -227,5 +272,47 @@ onMounted(() => {
   margin-top: 24px;
   border-top: 1px solid var(--c-border-light);
   padding-top: 8px;
+}
+
+.template-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+.template-card {
+  border: 1px solid var(--c-border-light);
+  border-radius: var(--radius-sm);
+  padding: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.template-card:hover {
+  border-color: var(--c-pri2);
+  background: var(--c-pri-light);
+  box-shadow: var(--shadow-sm);
+}
+
+.tpl-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--c-text);
+  margin-bottom: 8px;
+}
+
+.tpl-category {
+  margin-bottom: 6px;
+}
+
+.tpl-desc {
+  font-size: 12px;
+  color: var(--c-text2);
+  line-height: 1.5;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
 }
 </style>

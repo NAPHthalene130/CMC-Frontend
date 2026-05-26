@@ -7,6 +7,7 @@
         <TabBar />
       </div>
       <div class="top-right">
+        <NotificationBell />
         <div class="user-area" @click="showMenu = !showMenu" ref="userRef">
           <div class="user-avatar">{{ username.charAt(0).toUpperCase() }}</div>
           <span class="user-name">{{ username }}</span>
@@ -45,6 +46,7 @@ import BrandHeader from './BrandHeader.vue'
 import TabBar from './TabBar.vue'
 import NavTree from './NavTree.vue'
 import Watermark from '@/components/common/Watermark.vue'
+import NotificationBell from '@/components/common/NotificationBell.vue'
 import { ArrowDown, User, Moon, SwitchButton } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 

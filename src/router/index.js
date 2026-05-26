@@ -106,6 +106,24 @@ const routes = [
         meta: { title: '分配合同' }
       },
       {
+        path: 'query/workflow',
+        name: 'WorkflowView',
+        component: () => import('@/views/query/WorkflowView.vue'),
+        meta: { title: '流程可视化' }
+      },
+      {
+        path: 'contract/versions',
+        name: 'VersionHistory',
+        component: () => import('@/views/contract/VersionHistory.vue'),
+        meta: { title: '版本历史' }
+      },
+      {
+        path: 'system/templates',
+        name: 'TemplateList',
+        component: () => import('@/views/system/TemplateList.vue'),
+        meta: { title: '模板管理' }
+      },
+      {
         path: 'system/logs',
         name: 'LogList',
         component: () => import('@/views/system/LogList.vue'),

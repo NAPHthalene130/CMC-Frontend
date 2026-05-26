@@ -64,7 +64,8 @@ const navGroups = computed(() => {
       title: '查询统计',
       items: [
         { path: '/query/contract', label: '合同信息查询', icon: Search },
-        { path: '/query/process', label: '合同流程查询', icon: View }
+        { path: '/query/process', label: '合同流程查询', icon: View },
+        { path: '/query/workflow', label: '流程可视化', icon: Connection }
       ]
     })
 
@@ -82,6 +83,7 @@ const navGroups = computed(() => {
         { path: '/system/users', label: '用户管理', icon: UserFilled },
         { path: '/system/roles', label: '角色管理', icon: Setting },
         { path: '/system/permissions', label: '分配权限', icon: Checked },
+        { path: '/system/templates', label: '模板管理', icon: Files },
         { path: '/system/logs', label: '日志管理', icon: List }
       ]
     })
