@@ -16,13 +16,13 @@ export const useUserStore = defineStore('user', {
   actions: {
     async login(credentials) {
       const res = await apiLogin(credentials)
-      const { token, userInfo, role, permissions } = res.data || res
-      this.token = token
-      this.userInfo = userInfo
-      this.role = role || userInfo?.role || ''
-      this.permissions = permissions || []
-      localStorage.setItem('token', token)
-      localStorage.setItem('userInfo', JSON.stringify(userInfo))
+      const data = res.data || res
+      this.token = data.token
+      this.userInfo = data.user || data.userInfo
+      this.role = data.role || data.user?.role || ''
+      this.permissions = data.permissions || []
+      localStorage.setItem('token', this.token)
+      localStorage.setItem('userInfo', JSON.stringify(this.userInfo))
       localStorage.setItem('role', this.role)
       localStorage.setItem('permissions', JSON.stringify(this.permissions))
     },
