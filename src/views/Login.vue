@@ -111,6 +111,7 @@ const handleLogin = async () => {
       password: form.password
     })
     ElMessage.success('登录成功')
+    try { await authStore.fetchUserInfo() } catch { /* ignore */ }
     const role = authStore.role || ''
     const path = roleRoute[role] || '/home'
     router.push(path)

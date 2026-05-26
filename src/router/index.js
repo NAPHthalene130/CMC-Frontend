@@ -138,15 +138,22 @@ const router = createRouter({
   routes
 })
 
+let authWarningShown = false
+
 router.beforeEach((to, from, next) => {
   document.title = to.meta.title ? `${to.meta.title} - 合同管理系统` : '合同管理系统'
   const token = localStorage.getItem('token')
   if (to.meta.requiresAuth !== false && !token) {
-    ElMessage.warning('请先登录')
+    if (!authWarningShown) {
+      authWarningShown = true
+      ElMessage.warning('请先登录')
+    }
     next('/login')
   } else if ((to.path === '/login' || to.path === '/register') && token) {
+    authWarningShown = false
     next('/home')
   } else {
+    authWarningShown = false
     next()
   }
 })

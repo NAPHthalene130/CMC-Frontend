@@ -79,7 +79,12 @@ const handleClickOutside = (e) => {
   }
 }
 
-onMounted(() => document.addEventListener('click', handleClickOutside))
+onMounted(async () => {
+  document.addEventListener('click', handleClickOutside)
+  if (userStore.token && !userStore.role) {
+    try { await userStore.fetchUserInfo() } catch { /* ignore */ }
+  }
+})
 onBeforeUnmount(() => document.removeEventListener('click', handleClickOutside))
 </script>
 
