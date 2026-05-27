@@ -22,42 +22,13 @@
         <p class="form-sub">填写以下信息完成注册</p>
 
         <el-form :model="form" :rules="rules" ref="formRef" label-position="top">
-          <!-- 角色选择 -->
-          <el-form-item prop="role" label="注册角色">
-            <div class="role-selector">
-              <div
-                class="role-card"
-                :class="{ active: form.role === 'OPERATOR' }"
-                @click="form.role = 'OPERATOR'"
-              >
-                <div class="role-icon">
-                  <el-icon :size="20"><UserFilled /></el-icon>
-                </div>
-                <div class="role-info">
-                  <div class="role-name">合同操作员</div>
-                  <div class="role-desc">起草、会签、定稿、审批、签订合同</div>
-                </div>
-                <div class="role-check" v-if="form.role === 'OPERATOR'">
-                  <el-icon :size="16"><Check /></el-icon>
-                </div>
-              </div>
-              <div
-                class="role-card"
-                :class="{ active: form.role === 'ADMIN' }"
-                @click="form.role = 'ADMIN'"
-              >
-                <div class="role-icon">
-                  <el-icon :size="20"><Setting /></el-icon>
-                </div>
-                <div class="role-info">
-                  <div class="role-name">合同管理员</div>
-                  <div class="role-desc">分配合同、管理用户权限、系统维护</div>
-                </div>
-                <div class="role-check" v-if="form.role === 'ADMIN'">
-                  <el-icon :size="16"><Check /></el-icon>
-                </div>
-              </div>
-            </div>
+          <el-form-item label="注册说明">
+            <el-alert
+              title="注册后默认为新用户，需要管理员授权后才能使用合同业务功能。"
+              type="info"
+              :closable="false"
+              show-icon
+            />
           </el-form-item>
 
           <!-- 用户名 -->
@@ -120,7 +91,7 @@
 import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { register } from '@/api/auth'
-import { User, Lock, UserFilled, Setting, Check } from '@element-plus/icons-vue'
+import { User, Lock } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 
 const router = useRouter()
@@ -128,7 +99,6 @@ const formRef = ref(null)
 const loading = ref(false)
 
 const form = reactive({
-  role: 'OPERATOR',
   username: '',
   password: '',
   confirmPassword: ''
@@ -145,9 +115,6 @@ const validateConfirmPassword = (rule, value, callback) => {
 }
 
 const rules = {
-  role: [
-    { required: true, message: '请选择注册角色', trigger: 'change' }
-  ],
   username: [
     { required: true, message: '请输入用户名', trigger: 'blur' },
     { pattern: /^[a-zA-Z][a-zA-Z0-9_]{3,}$/, message: '须以字母开头，至少4位（可用字母、数字、下划线）', trigger: 'blur' }
@@ -170,7 +137,7 @@ const handleRegister = async () => {
     await register({
       username: form.username,
       password: form.password,
-      role: form.role
+      confirmPassword: form.confirmPassword
     })
     ElMessage.success('注册成功，即将跳转到登录页')
     setTimeout(() => {

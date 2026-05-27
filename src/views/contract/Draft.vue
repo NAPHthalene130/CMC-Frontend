@@ -21,7 +21,13 @@
           <el-input v-model="form.content" type="textarea" :rows="6" placeholder="请输入合同内容" />
         </el-form-item>
         <el-form-item label="附件">
-          <el-upload :auto-upload="false" :limit="1">
+          <el-upload
+            :auto-upload="false"
+            :limit="1"
+            :on-change="handleFileChange"
+            :on-remove="handleFileRemove"
+            :before-upload="validateAttachment"
+          >
             <el-button type="primary">上传附件</el-button>
             <template #tip><span class="tip">支持 doc、jpg、png、bmp、gif 格式</span></template>
           </el-upload>
@@ -36,8 +42,9 @@
 </template>
 
 <script setup>
-import { reactive, ref } from 'vue'
-import { draftContract } from '@/api/contract'
+import { onMounted, reactive, ref } from 'vue'
+import { draftContract, uploadContractAttachment } from '@/api/contract'
+import { getCustomers } from '@/api/customer'
 import { ElMessage } from 'element-plus'
 
 const formRef = ref(null)
@@ -51,14 +58,46 @@ const rules = {
   content: [{ required: true, message: '合同内容不能为空', trigger: 'blur' }]
 }
 const customers = ref([])
+const attachmentFile = ref(null)
+
+onMounted(async () => {
+  try {
+    const res = await getCustomers({ pageSize: 100 })
+    customers.value = res.data?.records || []
+  } catch { /* handled by interceptor */ }
+})
+
+const validateAttachment = (file) => {
+  const extension = file.name.split('.').pop()?.toLowerCase()
+  const allowTypes = ['doc', 'jpg', 'jpeg', 'png', 'bmp', 'gif']
+  if (!allowTypes.includes(extension)) {
+    ElMessage.error('附件格式不正确')
+    return false
+  }
+  return true
+}
+
+const handleFileChange = (uploadFile) => {
+  if (validateAttachment(uploadFile.raw)) {
+    attachmentFile.value = uploadFile.raw
+  }
+}
+
+const handleFileRemove = () => {
+  attachmentFile.value = null
+}
 
 const handleSubmit = async () => {
   const valid = await formRef.value.validate().catch(() => false)
   if (!valid) return
   try {
-    await draftContract(form)
+    const res = await draftContract(form)
+    if (attachmentFile.value) {
+      await uploadContractAttachment(res.data.id, attachmentFile.value)
+    }
     ElMessage.success('起草成功！')
     formRef.value.resetFields()
+    attachmentFile.value = null
   } catch { /* handled by interceptor */ }
 }
 </script>

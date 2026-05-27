@@ -4,6 +4,18 @@ export function draftContract(data) {
   return request.post('/contracts/draft', data)
 }
 
+export function uploadContractAttachment(id, file) {
+  const formData = new FormData()
+  formData.append('file', file)
+  return request.post(`/contracts/${id}/attachments`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  })
+}
+
+export function getContractAttachments(id) {
+  return request.get(`/contracts/${id}/attachments`)
+}
+
 export function finalizeContract(id, data) {
   return request.put(`/contracts/${id}/finalize`, data)
 }

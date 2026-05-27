@@ -18,28 +18,28 @@
           <span>首页</span>
         </el-menu-item>
 
-        <el-sub-menu v-if="isOperator" index="contract">
+        <el-sub-menu v-if="canAny(['C_DRAFT', 'P_COUNTER', 'C_FINAL', 'P_APPROVE', 'P_SIGN'])" index="contract">
           <template #title>
             <el-icon><Document /></el-icon>
             <span>合同管理</span>
           </template>
-          <el-menu-item index="/contract/draft">起草合同</el-menu-item>
-          <el-menu-item index="/contract/pending-countersign">待会签合同</el-menu-item>
-          <el-menu-item index="/contract/pending-finalize">待定稿合同</el-menu-item>
-          <el-menu-item index="/contract/pending-approve">待审批合同</el-menu-item>
-          <el-menu-item index="/contract/pending-sign">待签订合同</el-menu-item>
+          <el-menu-item v-if="can('C_DRAFT')" index="/contract/draft">起草合同</el-menu-item>
+          <el-menu-item v-if="can('P_COUNTER')" index="/contract/pending-countersign">待会签合同</el-menu-item>
+          <el-menu-item v-if="can('C_FINAL')" index="/contract/pending-finalize">待定稿合同</el-menu-item>
+          <el-menu-item v-if="can('P_APPROVE')" index="/contract/pending-approve">待审批合同</el-menu-item>
+          <el-menu-item v-if="can('P_SIGN')" index="/contract/pending-sign">待签订合同</el-menu-item>
         </el-sub-menu>
 
-        <el-sub-menu v-if="isAdmin" index="query">
+        <el-sub-menu v-if="canAny(['C_QUERY', 'P_QUERY'])" index="query">
           <template #title>
             <el-icon><Search /></el-icon>
             <span>查询统计</span>
           </template>
-          <el-menu-item index="/query/contract">合同信息查询</el-menu-item>
-          <el-menu-item index="/query/process">合同流程查询</el-menu-item>
+          <el-menu-item v-if="can('C_QUERY')" index="/query/contract">合同信息查询</el-menu-item>
+          <el-menu-item v-if="can('P_QUERY')" index="/query/process">合同流程查询</el-menu-item>
         </el-sub-menu>
 
-        <el-sub-menu index="customer" v-if="isAdmin">
+        <el-sub-menu index="customer" v-if="can('CU_MANAGE')">
           <template #title>
             <el-icon><UserFilled /></el-icon>
             <span>客户管理</span>
@@ -47,16 +47,16 @@
           <el-menu-item index="/customer">客户列表</el-menu-item>
         </el-sub-menu>
 
-        <el-sub-menu v-if="isAdmin" index="system">
+        <el-sub-menu v-if="canAny(['U_MANAGE', 'R_MANAGE', 'P_ASSIGN', 'L_MANAGE'])" index="system">
           <template #title>
             <el-icon><Setting /></el-icon>
             <span>系统管理</span>
           </template>
-          <el-menu-item index="/system/users">用户管理</el-menu-item>
-          <el-menu-item index="/system/roles">角色管理</el-menu-item>
-          <el-menu-item index="/system/permissions">分配权限</el-menu-item>
-          <el-menu-item index="/system/assign">分配合同</el-menu-item>
-          <el-menu-item index="/system/logs">日志管理</el-menu-item>
+          <el-menu-item v-if="can('U_MANAGE')" index="/system/users">用户管理</el-menu-item>
+          <el-menu-item v-if="can('R_MANAGE')" index="/system/roles">角色管理</el-menu-item>
+          <el-menu-item v-if="can('U_MANAGE')" index="/system/permissions">分配权限</el-menu-item>
+          <el-menu-item v-if="can('P_ASSIGN')" index="/system/assign">分配合同</el-menu-item>
+          <el-menu-item v-if="can('L_MANAGE')" index="/system/logs">日志管理</el-menu-item>
         </el-sub-menu>
       </el-menu>
     </el-aside>
@@ -92,9 +92,10 @@ const userStore = useUserStore()
 const isCollapse = ref(false)
 
 const username = computed(() => userStore.userInfo?.username || '用户')
-const isAdmin = computed(() => userStore.role === 'ADMIN')
-const isOperator = computed(() => userStore.role === 'OPERATOR' || userStore.role === 'ADMIN')
 const activeMenu = computed(() => route.path)
+
+const can = (permission) => userStore.role === 'ADMIN' || userStore.permissions.includes(permission)
+const canAny = (permissions) => permissions.some(can)
 
 const handleLogout = async () => {
   await userStore.logout()

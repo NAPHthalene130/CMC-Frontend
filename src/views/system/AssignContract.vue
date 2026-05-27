@@ -60,7 +60,7 @@ const assignForm = reactive({ contractId: null, countersignUserIds: [], approveU
 
 const fetchData = async () => {
   loading.value = true
-  try { const res = await getContracts({ keyword: query.keyword, pageSize: 100 }); list.value = res.data?.records || [] }
+  try { const res = await getContracts({ keyword: query.keyword, pageSize: 100, stateType: 1 }); list.value = res.data?.records || [] }
   catch { /* handled */ }
   loading.value = false
 }

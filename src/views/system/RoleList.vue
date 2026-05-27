@@ -24,7 +24,7 @@
         <el-form-item label="角色名称" prop="name"><el-input v-model="form.name" /></el-form-item>
         <el-form-item label="描述"><el-input v-model="form.description" /></el-form-item>
         <el-form-item label="权限配置">
-          <el-tree :data="functionTree" show-checkbox node-key="id" ref="treeRef"
+          <el-tree :data="functionTree" show-checkbox node-key="num" ref="treeRef"
             :props="{ label: 'name' }" :default-checked-keys="form.functionIds" />
         </el-form-item>
       </el-form>
@@ -60,7 +60,7 @@ onMounted(() => { fetchData(); fetchFunctions() })
 const handleAdd = () => { isEdit.value = false; Object.assign(form, { id: null, name: '', description: '', functionIds: [] }); dialogVisible.value = true }
 const handleEdit = (row) => {
   isEdit.value = true
-  const fnIds = row.functions ? row.functions.split(',').map(Number) : []
+  const fnIds = row.functions ? row.functions.split(',') : []
   Object.assign(form, { id: row.id, name: row.name, description: row.description || '', functionIds: fnIds })
   dialogVisible.value = true
 }

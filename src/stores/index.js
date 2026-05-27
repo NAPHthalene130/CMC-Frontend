@@ -19,7 +19,7 @@ export const useUserStore = defineStore('user', {
       const { token, userInfo, role, permissions } = res.data || res
       this.token = token
       this.userInfo = userInfo
-      this.role = role || userInfo?.role || ''
+      this.role = role || userInfo?.role || 'NEW_USER'
       this.permissions = permissions || []
       localStorage.setItem('token', token)
       localStorage.setItem('userInfo', JSON.stringify(userInfo))

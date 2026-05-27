@@ -35,7 +35,7 @@ import { ElMessage } from 'element-plus'
 const list = ref([])
 const loading = ref(false)
 const dialogVisible = ref(false)
-const form = reactive({ name: '', content: '', id: null })
+const form = reactive({ name: '', content: '', id: null, customerId: null, beginTime: '', endTime: '' })
 
 onMounted(async () => {
   loading.value = true
@@ -44,9 +44,23 @@ onMounted(async () => {
   loading.value = false
 })
 
-const handleFinalize = (row) => { form.name = row.name; form.content = row.content; form.id = row.id; dialogVisible.value = true }
+const handleFinalize = (row) => {
+  form.name = row.name
+  form.content = row.content
+  form.id = row.id
+  form.customerId = row.customerId
+  form.beginTime = row.beginTime
+  form.endTime = row.endTime
+  dialogVisible.value = true
+}
 const submitFinalize = async () => {
-  await finalizeContract(form.id, { name: form.name, content: form.content, customerId: null, beginTime: null, endTime: null })
+  await finalizeContract(form.id, {
+    name: form.name,
+    content: form.content,
+    customerId: form.customerId,
+    beginTime: form.beginTime,
+    endTime: form.endTime
+  })
   ElMessage.success('定稿成功')
   dialogVisible.value = false
 }
