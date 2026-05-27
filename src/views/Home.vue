@@ -83,7 +83,7 @@ const pieData = ref([])
 const lineData = ref([])
 
 const statusType = (row) => {
-  const map = { 1: 'draft', 2: 'countersigning', 3: 'success', 4: 'approving', 5: 'success' }
+  const map = { 1: 'draft', 2: 'countresigning', 3: 'success', 4: 'approving', 5: 'success' }
   return map[row.state] || 'info'
 }
 

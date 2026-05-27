@@ -79,7 +79,6 @@ import { getCustomers } from '@/api/customer'
 import { getTemplateList } from '@/api/template'
 import { uploadFile } from '@/api/file'
 import PageHeader from '@/components/common/PageHeader.vue'
-import EmptyState from '@/components/common/EmptyState.vue'
 import StatusTag from '@/components/common/StatusTag.vue'
 
 const formRef = ref(null)

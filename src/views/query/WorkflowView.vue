@@ -57,7 +57,7 @@
           :page-sizes="[10, 20]"
           layout="total, prev, pager, next"
           small
-          @change="loadData"
+          @current-change="loadData"
         />
       </div>
     </div>
@@ -93,7 +93,7 @@ const stageStats = ref([
 const statusNames = { 1: '起草中', 2: '会签完成', 3: '定稿完成', 4: '审批完成', 5: '签订完成' }
 
 const getStatusType = (state) => {
-  const map = { 1: 'draft', 2: 'countersigning', 3: 'success', 4: 'approving', 5: 'success' }
+  const map = { 1: 'draft', 2: 'countresigning', 3: 'success', 4: 'approving', 5: 'success' }
   return map[state] || 'info'
 }
 
