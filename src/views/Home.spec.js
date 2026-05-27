@@ -18,6 +18,12 @@ describe('Home.vue', () => {
     expect(source).toContain('pendingTotal')
   })
 
+  it('待办入口按权限跳转，避免无权限时直接进入 403', () => {
+    expect(source).toContain(':disabled="!can(\'P_COUNTER\')"')
+    expect(source).toContain('goTodo')
+    expect(source).toContain('当前角色暂无该待办权限')
+  })
+
   it('应用入口注册 Element Plus loading 指令', () => {
     const mainSource = readFileSync(resolve(process.cwd(), 'src/main.js'), 'utf-8')
 

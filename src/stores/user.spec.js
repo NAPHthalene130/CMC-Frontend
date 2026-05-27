@@ -69,4 +69,21 @@ describe('useUserStore', () => {
     expect(store.role).toBe('NEW_USER')
     expect(store.permissions).toEqual([])
   })
+
+  it('兼容后端返回中文角色名称并保存标准角色编码', async () => {
+    apiLogin.mockResolvedValue({
+      data: {
+        token: 'token-2',
+        userInfo: { id: 3, username: 'manager', role: '合同管理员' },
+        permissions: ['P_COUNTER']
+      }
+    })
+
+    const store = useUserStore()
+    await store.login({ username: 'manager', password: '123456' })
+
+    expect(store.role).toBe('ADMIN')
+    expect(store.userInfo.roleName).toBe('合同管理员')
+    expect(localStorage.getItem('role')).toBe('ADMIN')
+  })
 })

@@ -51,13 +51,13 @@
     <el-card class="page-panel table-card">
       <template #header><span class="section-title">我的待办中心</span></template>
       <div class="todo-grid" v-loading="loading">
-        <button class="todo-card" type="button" @click="$router.push('/contract/pending-countersign')">
+        <button class="todo-card" type="button" :disabled="!can('P_COUNTER')" @click="goTodo('/contract/pending-countersign', 'P_COUNTER')">
           <span>待会签</span><strong>{{ pending.countersign }}</strong>
         </button>
-        <button class="todo-card" type="button" @click="$router.push('/contract/pending-approve')">
+        <button class="todo-card" type="button" :disabled="!can('P_APPROVE')" @click="goTodo('/contract/pending-approve', 'P_APPROVE')">
           <span>待审批</span><strong>{{ pending.approve }}</strong>
         </button>
-        <button class="todo-card" type="button" @click="$router.push('/contract/pending-sign')">
+        <button class="todo-card" type="button" :disabled="!can('P_SIGN')" @click="goTodo('/contract/pending-sign', 'P_SIGN')">
           <span>待签订</span><strong>{{ pending.sign }}</strong>
         </button>
       </div>
@@ -67,17 +67,20 @@
 
 <script setup>
 import { computed, onMounted, reactive, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/index'
 import { getContractStats } from '@/api/contract'
 import { getPending } from '@/api/process'
+import { ElMessage } from 'element-plus'
 
+const router = useRouter()
 const userStore = useUserStore()
 const username = computed(() => userStore.userInfo?.username || '用户')
 const isNewUser = computed(() => userStore.role === 'NEW_USER')
 const permissionCount = computed(() => userStore.permissions?.length || 0)
 const roleText = computed(() => {
   const roleMap = { ADMIN: '合同管理员', OPERATOR: '合同操作员', NEW_USER: '新用户' }
-  return roleMap[userStore.role] || userStore.role || '未授权'
+  return userStore.userInfo?.roleName || roleMap[userStore.role] || userStore.role || '未授权'
 })
 const loading = ref(false)
 const stats = reactive({ total: 0, draft: 0, countersigned: 0, finalized: 0, approved: 0, signed: 0 })
@@ -107,6 +110,15 @@ const loadDashboard = async () => {
     pending.sign = signRes.data?.length || 0
   } catch { /* handled by interceptor */ }
   loading.value = false
+}
+
+const can = (permission) => userStore.role === 'ADMIN' || userStore.permissions.includes(permission)
+const goTodo = (path, permission) => {
+  if (!can(permission)) {
+    ElMessage.warning('当前角色暂无该待办权限')
+    return
+  }
+  router.push(path)
 }
 
 onMounted(loadDashboard)
@@ -151,6 +163,12 @@ onMounted(loadDashboard)
 .todo-card:hover {
   box-shadow: var(--shadow-md);
   transform: translateY(-2px);
+}
+
+.todo-card:disabled {
+  cursor: not-allowed;
+  opacity: .55;
+  transform: none;
 }
 
 .status-card strong,
