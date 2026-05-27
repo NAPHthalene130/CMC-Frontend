@@ -17,4 +17,11 @@ describe('Home.vue', () => {
     expect(source).toContain('getPending(3)')
     expect(source).toContain('pendingTotal')
   })
+
+  it('应用入口注册 Element Plus loading 指令', () => {
+    const mainSource = readFileSync(resolve(process.cwd(), 'src/main.js'), 'utf-8')
+
+    expect(mainSource).toContain("import { ElLoading } from 'element-plus'")
+    expect(mainSource).toContain("app.directive('loading', ElLoading.directive)")
+  })
 })
