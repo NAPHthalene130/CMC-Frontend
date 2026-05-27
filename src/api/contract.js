@@ -24,6 +24,10 @@ export function getContracts(params) {
   return request.get('/contracts', { params })
 }
 
+export function getContractStats() {
+  return request.get('/contracts/stats')
+}
+
 export function getContract(id) {
   return request.get(`/contracts/${id}`)
 }

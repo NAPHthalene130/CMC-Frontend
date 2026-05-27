@@ -1,8 +1,8 @@
 <template>
   <div class="home-page">
-    <section class="page-head">
-      <h1>合同管理系统</h1>
-      <p>您好，{{ username }}，欢迎使用合同管理系统。</p>
+    <section class="page-hero home-hero">
+      <h1 class="page-title">合同管理系统</h1>
+      <p class="page-desc">您好，{{ username }}，这里是你的合同流程工作台。</p>
     </section>
 
     <el-alert
@@ -14,26 +14,62 @@
       class="notice"
     />
 
-    <div class="cards">
-      <el-card class="summary-card">
-        <span class="label">当前角色</span>
-        <strong>{{ roleText }}</strong>
-      </el-card>
-      <el-card class="summary-card">
-        <span class="label">权限数量</span>
-        <strong>{{ permissionCount }}</strong>
-      </el-card>
-      <el-card class="summary-card">
-        <span class="label">系统状态</span>
-        <strong>运行中</strong>
-      </el-card>
+    <div class="metric-grid">
+      <article class="metric-card">
+        <div class="metric-label">当前角色</div>
+        <div class="metric-value">{{ roleText }}</div>
+      </article>
+      <article class="metric-card">
+        <div class="metric-label">权限数量</div>
+        <div class="metric-value">{{ permissionCount }}</div>
+      </article>
+      <article class="metric-card">
+        <div class="metric-label">合同总数</div>
+        <div class="metric-value">{{ stats.total }}</div>
+      </article>
+      <article class="metric-card">
+        <div class="metric-label">待办任务</div>
+        <div class="metric-value">{{ pendingTotal }}</div>
+      </article>
     </div>
+
+    <el-card class="page-panel table-card">
+      <template #header>
+        <div class="panel-header">
+          <span class="section-title">合同状态看板</span>
+          <el-button type="primary" @click="loadDashboard">刷新</el-button>
+        </div>
+      </template>
+      <div class="status-board" v-loading="loading">
+        <div v-for="item in statusCards" :key="item.label" class="status-card">
+          <span :class="['status-pill', item.className]">{{ item.label }}</span>
+          <strong>{{ item.value }}</strong>
+        </div>
+      </div>
+    </el-card>
+
+    <el-card class="page-panel table-card">
+      <template #header><span class="section-title">我的待办中心</span></template>
+      <div class="todo-grid" v-loading="loading">
+        <button class="todo-card" type="button" @click="$router.push('/contract/pending-countersign')">
+          <span>待会签</span><strong>{{ pending.countersign }}</strong>
+        </button>
+        <button class="todo-card" type="button" @click="$router.push('/contract/pending-approve')">
+          <span>待审批</span><strong>{{ pending.approve }}</strong>
+        </button>
+        <button class="todo-card" type="button" @click="$router.push('/contract/pending-sign')">
+          <span>待签订</span><strong>{{ pending.sign }}</strong>
+        </button>
+      </div>
+    </el-card>
   </div>
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import { useUserStore } from '@/stores/index'
+import { getContractStats } from '@/api/contract'
+import { getPending } from '@/api/process'
 
 const userStore = useUserStore()
 const username = computed(() => userStore.userInfo?.username || '用户')
@@ -43,6 +79,37 @@ const roleText = computed(() => {
   const roleMap = { ADMIN: '合同管理员', OPERATOR: '合同操作员', NEW_USER: '新用户' }
   return roleMap[userStore.role] || userStore.role || '未授权'
 })
+const loading = ref(false)
+const stats = reactive({ total: 0, draft: 0, countersigned: 0, finalized: 0, approved: 0, signed: 0 })
+const pending = reactive({ countersign: 0, approve: 0, sign: 0 })
+const pendingTotal = computed(() => pending.countersign + pending.approve + pending.sign)
+const statusCards = computed(() => [
+  { label: '起草', value: stats.draft, className: 'status-draft' },
+  { label: '会签完成', value: stats.countersigned, className: 'status-counter' },
+  { label: '定稿完成', value: stats.finalized, className: 'status-final' },
+  { label: '审批完成', value: stats.approved, className: 'status-approved' },
+  { label: '签订完成', value: stats.signed, className: 'status-signed' }
+])
+
+const loadDashboard = async () => {
+  if (isNewUser.value) return
+  loading.value = true
+  try {
+    const [statsRes, countersignRes, approveRes, signRes] = await Promise.all([
+      getContractStats(),
+      getPending(1),
+      getPending(2),
+      getPending(3)
+    ])
+    Object.assign(stats, statsRes.data || {})
+    pending.countersign = countersignRes.data?.length || 0
+    pending.approve = approveRes.data?.length || 0
+    pending.sign = signRes.data?.length || 0
+  } catch { /* handled by interceptor */ }
+  loading.value = false
+}
+
+onMounted(loadDashboard)
 </script>
 
 <style scoped>
@@ -52,48 +119,43 @@ const roleText = computed(() => {
   gap: var(--sp-xl);
 }
 
-.page-head {
-  background: var(--c-surface);
-  border: 1px solid var(--c-border-light);
-  border-radius: var(--radius-lg);
-  padding: var(--sp-xl);
-  box-shadow: var(--shadow-sm);
-}
-
-.page-head h1 {
-  margin: 0 0 var(--sp-sm);
-  color: var(--c-text);
-  font-size: 20px;
-}
-
-.page-head p {
-  margin: 0;
-  color: var(--c-text2);
-}
-
 .notice {
   border-radius: var(--radius-md);
 }
 
-.cards {
+.status-board,
+.todo-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   gap: var(--sp-lg);
 }
 
-.summary-card :deep(.el-card__body) {
+.status-card,
+.todo-card {
   display: flex;
-  flex-direction: column;
-  gap: var(--sp-sm);
+  align-items: center;
+  justify-content: space-between;
+  border: 1px solid var(--c-border-light);
+  border-radius: var(--radius-lg);
+  background: var(--c-surface);
+  padding: var(--sp-lg);
 }
 
-.label {
+.todo-card {
+  cursor: pointer;
+  font: inherit;
   color: var(--c-text2);
-  font-size: 12px;
+  transition: transform .2s, box-shadow .2s;
 }
 
-strong {
+.todo-card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.status-card strong,
+.todo-card strong {
   color: var(--c-text);
-  font-size: 18px;
+  font-size: 22px;
 }
 </style>
