@@ -8,6 +8,10 @@ export function getPending(type) {
   return request.get('/process/pending', { params: { type } })
 }
 
+export function getContractProcesses(contractId, type) {
+  return request.get(`/process/contracts/${contractId}`, { params: { type } })
+}
+
 export function countersign(data) {
   return request.post('/process/countersign', data)
 }
