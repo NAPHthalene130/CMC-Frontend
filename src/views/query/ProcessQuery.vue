@@ -6,9 +6,9 @@
       <div class="toolbar">
         <el-select v-model="filterState" placeholder="选择合同状态" clearable @change="handleFilterChange" class="status-filter">
           <el-option label="全部" :value="null" />
-          <el-option label="起草" :value="1" />
-          <el-option label="会签中" :value="2" />
-          <el-option label="审批中" :value="3" />
+          <el-option label="待会签" :value="1" />
+          <el-option label="待定稿" :value="2" />
+          <el-option label="待审批" :value="3" />
           <el-option label="待签订" :value="4" />
           <el-option label="已签订" :value="5" />
         </el-select>
@@ -78,7 +78,7 @@ const dialogVisible = ref(false)
 const currentTimeline = ref([])
 
 const statusMap = { 1: 'draft', 2: 'countresigning', 3: 'approving', 4: 'warning', 5: 'success' }
-const statusTextMap = { 1: '起草', 2: '会签中', 3: '审批中', 4: '待签订', 5: '已签订' }
+const statusTextMap = { 1: '待会签', 2: '待定稿', 3: '待审批', 4: '待签订', 5: '已签订' }
 
 const statusType = (state) => statusMap[state] || 'info'
 const statusText = (state) => statusTextMap[state] || '未知'
@@ -111,10 +111,10 @@ const buildTimeline = (row) => {
 
   const allSteps = [
     { key: 1, title: '合同起草', done: state >= 1 },
-    { key: 2, title: '会签审批', done: state >= 2 },
-    { key: 3, title: '合同定稿', done: state >= 3 },
-    { key: 4, title: '领导审批', done: state >= 4 },
-    { key: 5, title: '合同签订', done: state >= 5 }
+    { key: 2, title: '会签完成', done: state >= 2 },
+    { key: 3, title: '定稿完成', done: state >= 3 },
+    { key: 4, title: '审批完成', done: state >= 4 },
+    { key: 5, title: '签订完成', done: state >= 5 }
   ]
 
   allSteps.forEach((s) => {

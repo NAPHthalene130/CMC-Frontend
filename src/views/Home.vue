@@ -88,7 +88,7 @@ const statusType = (row) => {
 }
 
 const statusText = (row) => {
-  const map = { 1: '起草中', 2: '会签完成', 3: '定稿完成', 4: '审批完成', 5: '已完成' }
+  const map = { 1: '待会签', 2: '待定稿', 3: '待审批', 4: '待签订', 5: '已签订' }
   return map[row.state] || '未知'
 }
 
@@ -149,8 +149,8 @@ const initPieChart = () => {
   if (pieChart) pieChart.dispose()
   pieChart = echarts.init(pieChartRef.value)
   const chartData = pieData.value.length > 0 ? pieData.value : [
-    { value: 0, name: '起草中' }, { value: 0, name: '会签完成' },
-    { value: 0, name: '定稿完成' }, { value: 0, name: '审批完成' }, { value: 0, name: '签订完成' }
+    { value: 0, name: '待会签' }, { value: 0, name: '待定稿' },
+    { value: 0, name: '待审批' }, { value: 0, name: '待签订' }, { value: 0, name: '已签订' }
   ]
   pieChart.setOption({
     tooltip: { trigger: 'item' },

@@ -192,6 +192,7 @@ const handleSubmit = async () => {
     }
     if (form.password) {
       data.password = form.password
+      data.confirmPassword = form.confirmPassword
     }
     if (isEdit.value) {
       await updateUser(form.id, data)

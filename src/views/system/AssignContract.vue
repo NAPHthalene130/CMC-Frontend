@@ -131,6 +131,15 @@ const handleAssign = (row) => {
 }
 
 const submitAssign = async () => {
+  if (
+    assignForm.countersignUserIds.length === 0 ||
+    assignForm.approveUserIds.length === 0 ||
+    assignForm.signUserIds.length === 0
+  ) {
+    ElMessage.warning('请至少选择一名会签人、审批人和签订人')
+    return
+  }
+
   submitting.value = true
   try {
     await assignContract({

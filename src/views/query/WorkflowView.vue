@@ -18,11 +18,11 @@
       <div class="card-header">
         <span class="card-title">合同流程详情</span>
         <el-select v-model="filterState" placeholder="按状态筛选" clearable size="small" @change="loadData" style="width: 160px">
-          <el-option label="起草中" :value="1" />
-          <el-option label="会签完成" :value="2" />
-          <el-option label="定稿完成" :value="3" />
-          <el-option label="审批完成" :value="4" />
-          <el-option label="签订完成" :value="5" />
+          <el-option label="待会签" :value="1" />
+          <el-option label="待定稿" :value="2" />
+          <el-option label="待审批" :value="3" />
+          <el-option label="待签订" :value="4" />
+          <el-option label="已签订" :value="5" />
         </el-select>
       </div>
 
@@ -83,14 +83,14 @@ const chartRef = ref(null)
 let chart = null
 
 const stageStats = ref([
-  { name: '起草中', count: 0, color: '#2d6a4f' },
-  { name: '会签完成', count: 0, color: '#40916c' },
-  { name: '定稿完成', count: 0, color: '#52b788' },
-  { name: '审批完成', count: 0, color: '#95d5b2' },
-  { name: '签订完成', count: 0, color: '#52b788' }
+  { name: '待会签', count: 0, color: '#2d6a4f' },
+  { name: '待定稿', count: 0, color: '#40916c' },
+  { name: '待审批', count: 0, color: '#52b788' },
+  { name: '待签订', count: 0, color: '#95d5b2' },
+  { name: '已签订', count: 0, color: '#52b788' }
 ])
 
-const statusNames = { 1: '起草中', 2: '会签完成', 3: '定稿完成', 4: '审批完成', 5: '签订完成' }
+const statusNames = { 1: '待会签', 2: '待定稿', 3: '待审批', 4: '待签订', 5: '已签订' }
 
 const getStatusType = (state) => {
   const map = { 1: 'draft', 2: 'countersigning', 3: 'success', 4: 'approving', 5: 'success' }
@@ -117,11 +117,11 @@ const loadData = async () => {
       const countMap = {}
       statusRes.data.forEach(item => { countMap[item.type] = item.value || 0 })
       stageStats.value = [
-        { name: '起草中', count: countMap[1] || 0, color: '#2d6a4f' },
-        { name: '会签完成', count: countMap[2] || 0, color: '#40916c' },
-        { name: '定稿完成', count: countMap[3] || 0, color: '#52b788' },
-        { name: '审批完成', count: countMap[4] || 0, color: '#95d5b2' },
-        { name: '签订完成', count: countMap[5] || 0, color: '#52b788' }
+        { name: '待会签', count: countMap[1] || 0, color: '#2d6a4f' },
+        { name: '待定稿', count: countMap[2] || 0, color: '#40916c' },
+        { name: '待审批', count: countMap[3] || 0, color: '#52b788' },
+        { name: '待签订', count: countMap[4] || 0, color: '#95d5b2' },
+        { name: '已签订', count: countMap[5] || 0, color: '#52b788' }
       ]
       nextTick(() => initChart())
     }

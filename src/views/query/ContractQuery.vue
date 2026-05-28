@@ -91,7 +91,7 @@ const dialogVisible = ref(false)
 const currentRow = ref(null)
 
 const statusMap = { 1: 'draft', 2: 'countresigning', 3: 'approving', 4: 'warning', 5: 'success' }
-const statusTextMap = { 1: '起草', 2: '会签中', 3: '审批中', 4: '待签订', 5: '已签订' }
+const statusTextMap = { 1: '待会签', 2: '待定稿', 3: '待审批', 4: '待签订', 5: '已签订' }
 
 const statusType = (state) => statusMap[state] || 'info'
 const statusText = (state) => statusTextMap[state] || '未知'
