@@ -22,44 +22,6 @@
         <p class="form-sub">填写以下信息完成注册</p>
 
         <el-form :model="form" :rules="rules" ref="formRef" label-position="top">
-          <!-- 角色选择 -->
-          <el-form-item prop="role" label="注册角色">
-            <div class="role-selector">
-              <div
-                class="role-card"
-                :class="{ active: form.role === 'OPERATOR' }"
-                @click="form.role = 'OPERATOR'"
-              >
-                <div class="role-icon">
-                  <el-icon :size="20"><UserFilled /></el-icon>
-                </div>
-                <div class="role-info">
-                  <div class="role-name">合同操作员</div>
-                  <div class="role-desc">起草、会签、定稿、审批、签订合同</div>
-                </div>
-                <div class="role-check" v-if="form.role === 'OPERATOR'">
-                  <el-icon :size="16"><Check /></el-icon>
-                </div>
-              </div>
-              <div
-                class="role-card"
-                :class="{ active: form.role === 'ADMIN' }"
-                @click="form.role = 'ADMIN'"
-              >
-                <div class="role-icon">
-                  <el-icon :size="20"><Setting /></el-icon>
-                </div>
-                <div class="role-info">
-                  <div class="role-name">合同管理员</div>
-                  <div class="role-desc">分配合同、管理用户权限、系统维护</div>
-                </div>
-                <div class="role-check" v-if="form.role === 'ADMIN'">
-                  <el-icon :size="16"><Check /></el-icon>
-                </div>
-              </div>
-            </div>
-          </el-form-item>
-
           <!-- 用户名 -->
           <el-form-item prop="username" label="用户名">
             <el-input
@@ -119,16 +81,16 @@
 <script setup>
 import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { register } from '@/api/auth'
-import { User, Lock, UserFilled, Setting, Check } from '@element-plus/icons-vue'
+import { useAuthStore } from '@/stores/auth'
+import { User, Lock } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 
 const router = useRouter()
+const authStore = useAuthStore()
 const formRef = ref(null)
 const loading = ref(false)
 
 const form = reactive({
-  role: 'OPERATOR',
   username: '',
   password: '',
   confirmPassword: ''
@@ -145,9 +107,6 @@ const validateConfirmPassword = (rule, value, callback) => {
 }
 
 const rules = {
-  role: [
-    { required: true, message: '请选择注册角色', trigger: 'change' }
-  ],
   username: [
     { required: true, message: '请输入用户名', trigger: 'blur' },
     { pattern: /^[a-zA-Z][a-zA-Z0-9_]{3,}$/, message: '须以字母开头，至少4位（可用字母、数字、下划线）', trigger: 'blur' }
@@ -167,10 +126,10 @@ const handleRegister = async () => {
 
   loading.value = true
   try {
-    await register({
+    await authStore.register({
       username: form.username,
       password: form.password,
-      role: form.role
+      confirmPassword: form.confirmPassword
     })
     ElMessage.success('注册成功，即将跳转到登录页')
     setTimeout(() => {
@@ -264,77 +223,6 @@ const handleRegister = async () => {
   margin-bottom: 28px;
 }
 
-/* ===== 角色选择卡片 ===== */
-.role-selector {
-  display: flex;
-  gap: 12px;
-  width: 100%;
-}
-.role-card {
-  flex: 1;
-  padding: 14px 16px;
-  border: 2px solid var(--c-border);
-  border-radius: var(--radius-md);
-  cursor: pointer;
-  transition: all 0.2s;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  position: relative;
-  background: #fafcfa;
-}
-.role-card:hover {
-  border-color: var(--c-pri2);
-  background: var(--c-hover);
-}
-.role-card.active {
-  border-color: var(--c-pri);
-  background: var(--c-pri-light);
-}
-.role-icon {
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
-  background: var(--c-pri-light);
-  color: var(--c-pri);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-.role-card.active .role-icon {
-  background: var(--c-pri);
-  color: #fff;
-}
-.role-info {
-  flex: 1;
-  min-width: 0;
-}
-.role-name {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--c-text);
-  margin-bottom: 2px;
-}
-.role-desc {
-  font-size: 11px;
-  color: var(--c-text2);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.role-check {
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  background: var(--c-pri);
-  color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
 .submit-btn {
   width: 100%;
   height: 44px;
@@ -365,6 +253,5 @@ const handleRegister = async () => {
   .register-hero h1 { font-size: 22px; letter-spacing: 4px; }
   .register-form { min-width: unset; padding: 24px; }
   .form-card { width: 100%; }
-  .role-selector { flex-direction: column; }
 }
 </style>

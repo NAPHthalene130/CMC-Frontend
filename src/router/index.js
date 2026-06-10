@@ -20,7 +20,7 @@ const routes = [
   },
   {
     path: '/',
-    component: () => import('@/layout/MainLayout.vue'),
+    component: () => import('@/layout/WorkspaceLayout.vue'),
     meta: { requiresAuth: true },
     children: [
       {
@@ -106,6 +106,24 @@ const routes = [
         meta: { title: '分配合同' }
       },
       {
+        path: 'query/workflow',
+        name: 'WorkflowView',
+        component: () => import('@/views/query/WorkflowView.vue'),
+        meta: { title: '流程可视化' }
+      },
+      {
+        path: 'contract/versions',
+        name: 'VersionHistory',
+        component: () => import('@/views/contract/VersionHistory.vue'),
+        meta: { title: '版本历史' }
+      },
+      {
+        path: 'system/templates',
+        name: 'TemplateList',
+        component: () => import('@/views/system/TemplateList.vue'),
+        meta: { title: '模板管理' }
+      },
+      {
         path: 'system/logs',
         name: 'LogList',
         component: () => import('@/views/system/LogList.vue'),
@@ -120,15 +138,22 @@ const router = createRouter({
   routes
 })
 
+let authWarningShown = false
+
 router.beforeEach((to, from, next) => {
   document.title = to.meta.title ? `${to.meta.title} - 合同管理系统` : '合同管理系统'
   const token = localStorage.getItem('token')
   if (to.meta.requiresAuth !== false && !token) {
-    ElMessage.warning('请先登录')
+    if (!authWarningShown) {
+      authWarningShown = true
+      ElMessage.warning('请先登录')
+    }
     next('/login')
   } else if ((to.path === '/login' || to.path === '/register') && token) {
+    authWarningShown = false
     next('/home')
   } else {
+    authWarningShown = false
     next()
   }
 })

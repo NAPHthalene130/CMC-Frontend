@@ -96,3 +96,41 @@ html, body, #app {
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: #c8e6c9; border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: #a3d1b8; }
+
+/* ===== 暗黑主题 ===== */
+html.dark {
+  --c-bg: #121a14;
+  --c-surface: #1a241e;
+  --c-text: #d4e0d8;
+  --c-text2: #7d8c81;
+  --c-border: #2a362e;
+  --c-border-light: #222d25;
+  --c-hover: #1e2d24;
+  --c-pri-light: rgba(45, 106, 79, 0.2);
+
+  --el-bg-color: #1a241e;
+  --el-bg-color-overlay: #1e2d24;
+  --el-border-color-light: #2a362e;
+  --el-text-color-primary: #d4e0d8;
+  --el-text-color-regular: #b3c2b8;
+  --el-fill-color-blank: #1a241e;
+  --el-fill-color-light: #222d25;
+}
+
+html.dark .el-table {
+  --el-table-bg-color: #1a241e;
+  --el-table-tr-bg-color: #1a241e;
+  --el-table-header-bg-color: #222d25;
+  --el-table-row-hover-bg-color: #1e2d24;
+  --el-table-border-color: #2a362e;
+}
+
+html.dark .el-dialog {
+  --el-dialog-bg-color: #1a241e;
+}
+
+html.dark .el-menu {
+  --el-menu-bg-color: #121a14;
+  --el-menu-text-color: #7d8c81;
+  --el-menu-active-color: #52b788;
+}

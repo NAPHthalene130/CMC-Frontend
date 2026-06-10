@@ -71,12 +71,12 @@
 <script setup>
 import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { useUserStore } from '@/stores/index'
+import { useAuthStore } from '@/stores/auth'
 import { User, Lock } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 
 const router = useRouter()
-const userStore = useUserStore()
+const authStore = useAuthStore()
 const formRef = ref(null)
 const loading = ref(false)
 
@@ -95,18 +95,26 @@ const rules = {
   ]
 }
 
+const roleRoute = {
+  ADMIN: '/home',
+  OPERATOR: '/home'
+}
+
 const handleLogin = async () => {
   const valid = await formRef.value.validate().catch(() => false)
   if (!valid) return
 
   loading.value = true
   try {
-    await userStore.login({
+    await authStore.login({
       username: form.username,
       password: form.password
     })
     ElMessage.success('登录成功')
-    router.push('/home')
+    try { await authStore.fetchUserInfo() } catch { /* ignore */ }
+    const role = authStore.role || ''
+    const path = roleRoute[role] || '/home'
+    router.push(path)
   } catch (err) {
     ElMessage.error(err?.response?.data?.msg || err?.message || '登录失败，请检查用户名和密码')
   } finally {
