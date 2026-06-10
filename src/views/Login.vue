@@ -72,11 +72,13 @@
 import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { useTabsStore } from '@/stores/tabs'
 import { User, Lock } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 
 const router = useRouter()
 const authStore = useAuthStore()
+const tabsStore = useTabsStore()
 const formRef = ref(null)
 const loading = ref(false)
 
@@ -112,6 +114,7 @@ const handleLogin = async () => {
     })
     ElMessage.success('登录成功')
     try { await authStore.fetchUserInfo() } catch { /* ignore */ }
+    tabsStore.closeAllTabs()
     const role = authStore.role || ''
     const path = roleRoute[role] || '/home'
     router.push(path)

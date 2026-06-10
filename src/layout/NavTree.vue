@@ -36,6 +36,17 @@ const tabsStore = useTabsStore()
 const isAdmin = computed(() => userStore.role === 'ADMIN')
 const isOperator = computed(() => userStore.role === 'OPERATOR' || userStore.role === 'ADMIN')
 
+/** 当前用户的权限列表（function ID 集合） */
+const permSet = computed(() => {
+  const val = userStore.permissions
+  if (!val) return new Set()
+  const str = Array.isArray(val) ? val.join(',') : String(val)
+  return new Set(str.split(',').map(s => s.trim()).filter(Boolean))
+})
+
+/** 检查是否拥有指定权限 ID */
+const hasPerm = (id) => !id || permSet.value.has(String(id))
+
 const navGroups = computed(() => {
   const groups = []
 
@@ -47,46 +58,46 @@ const navGroups = computed(() => {
   })
 
   if (isOperator.value) {
-    groups.push({
-      title: '合同管理',
-      items: [
-        { path: '/contract/draft', label: '起草合同', icon: Edit },
-        { path: '/contract/pending-countersign', label: '待会签合同', icon: Clock },
-        { path: '/contract/pending-finalize', label: '待定稿合同', icon: Files },
-        { path: '/contract/pending-approve', label: '待审批合同', icon: Checked },
-        { path: '/contract/pending-sign', label: '待签订合同', icon: Document }
-      ]
-    })
+    const contractItems = [
+      { path: '/contract/draft', label: '起草合同', icon: Edit, permId: 1 },
+      { path: '/contract/pending-countersign', label: '待会签合同', icon: Clock, permId: 5 },
+      { path: '/contract/pending-finalize', label: '待定稿合同', icon: Files, permId: 2 },
+      { path: '/contract/pending-approve', label: '待审批合同', icon: Checked, permId: 6 },
+      { path: '/contract/pending-sign', label: '待签订合同', icon: Document, permId: 7 }
+    ].filter(item => hasPerm(item.permId))
+    if (contractItems.length) {
+      groups.push({ title: '合同管理', items: contractItems })
+    }
   }
 
   if (isAdmin.value) {
-    groups.push({
-      title: '查询统计',
-      items: [
-        { path: '/query/contract', label: '合同信息查询', icon: Search },
-        { path: '/query/process', label: '合同流程查询', icon: View },
-        { path: '/query/workflow', label: '流程可视化', icon: Connection }
-      ]
-    })
+    const queryItems = [
+      { path: '/query/contract', label: '合同信息查询', icon: Search, permId: 3 },
+      { path: '/query/process', label: '合同流程查询', icon: View, permId: 11 },
+      { path: '/query/workflow', label: '流程可视化', icon: Connection }
+    ].filter(item => hasPerm(item.permId))
+    if (queryItems.length) {
+      groups.push({ title: '查询统计', items: queryItems })
+    }
 
-    groups.push({
-      title: '基础数据',
-      items: [
-        { path: '/customer', label: '客户管理', icon: UserFilled }
-      ]
-    })
+    const baseDataItems = [
+      { path: '/customer', label: '客户管理', icon: UserFilled, permId: 29 }
+    ].filter(item => hasPerm(item.permId))
+    if (baseDataItems.length) {
+      groups.push({ title: '基础数据', items: baseDataItems })
+    }
 
-    groups.push({
-      title: '系统管理',
-      items: [
-        { path: '/system/assign', label: '分配合同', icon: Connection },
-        { path: '/system/users', label: '用户管理', icon: UserFilled },
-        { path: '/system/roles', label: '角色管理', icon: Setting },
-        { path: '/system/permissions', label: '分配权限', icon: Checked },
-        { path: '/system/templates', label: '模板管理', icon: Files },
-        { path: '/system/logs', label: '日志管理', icon: List }
-      ]
-    })
+    const sysItems = [
+      { path: '/system/assign', label: '分配合同', icon: Connection, permId: 8 },
+      { path: '/system/users', label: '用户管理', icon: UserFilled, permId: 12 },
+      { path: '/system/roles', label: '角色管理', icon: Setting, permId: 13 },
+      { path: '/system/permissions', label: '分配权限', icon: Checked, permId: 13 },
+      { path: '/system/templates', label: '模板管理', icon: Files, permId: 23 },
+      { path: '/system/logs', label: '日志管理', icon: List }
+    ].filter(item => hasPerm(item.permId))
+    if (sysItems.length) {
+      groups.push({ title: '系统管理', items: sysItems })
+    }
   }
 
   return groups
