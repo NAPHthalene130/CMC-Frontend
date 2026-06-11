@@ -119,7 +119,7 @@ const handleLogin = async () => {
     const path = roleRoute[role] || '/home'
     router.push(path)
   } catch (err) {
-    ElMessage.error(err?.response?.data?.msg || err?.message || '登录失败，请检查用户名和密码')
+    ElMessage.error(err?.response?.msg || err?.message || '登录失败，请检查用户名和密码')
   } finally {
     loading.value = false
   }
