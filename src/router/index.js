@@ -37,6 +37,12 @@ const routes = [
         meta: { title: '起草合同' }
       },
       {
+        path: 'contract/my',
+        name: 'MyContracts',
+        component: () => import('@/views/contract/MyContracts.vue'),
+        meta: { title: '我的合同' }
+      },
+      {
         path: 'contract/pending-countersign',
         name: 'PendingCountersign',
         component: () => import('@/views/contract/Countersign.vue'),

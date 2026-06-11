@@ -75,6 +75,7 @@
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getContracts, finalizeContract } from '@/api/contract'
+import { getProcesses } from '@/api/process'
 import { getCustomers } from '@/api/customer'
 import PageHeader from '@/components/common/PageHeader.vue'
 import StatusTag from '@/components/common/StatusTag.vue'
@@ -129,8 +130,19 @@ const loadCustomers = async () => {
   } catch { /* handled */ }
 }
 
-const handleViewOpinions = (row) => {
-  currentOpinions.value = row.countersignOpinions || row.opinions || []
+const handleViewOpinions = async (row) => {
+  try {
+    const res = await getProcesses(row.id)
+    const processes = res.data || []
+    const countersignProcesses = processes.filter(p => p.type === 1)
+    currentOpinions.value = countersignProcesses.map(p => ({
+      username: p.username || '未知用户',
+      time: p.time,
+      content: p.content || '无意见'
+    }))
+  } catch {
+    currentOpinions.value = []
+  }
   opinionDialogVisible.value = true
 }
 

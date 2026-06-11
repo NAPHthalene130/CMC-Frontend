@@ -8,6 +8,10 @@ export function finalizeContract(id, data) {
   return request.put(`/contracts/${id}/finalize`, data)
 }
 
+export function redraftContract(id) {
+  return request.post(`/contracts/${id}/redraft`)
+}
+
 export function getContracts(params) {
   return request.get('/contracts', { params })
 }

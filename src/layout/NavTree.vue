@@ -60,6 +60,7 @@ const navGroups = computed(() => {
   if (isOperator.value) {
     const contractItems = [
       { path: '/contract/draft', label: '起草合同', icon: Edit, permId: 1 },
+      { path: '/contract/my', label: '我的合同', icon: Document },
       { path: '/contract/pending-countersign', label: '待会签合同', icon: Clock, permId: 5 },
       { path: '/contract/pending-finalize', label: '待定稿合同', icon: Files, permId: 2 },
       { path: '/contract/pending-approve', label: '待审批合同', icon: Checked, permId: 6 },
