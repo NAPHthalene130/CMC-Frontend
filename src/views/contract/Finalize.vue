@@ -7,7 +7,7 @@
         <el-table-column prop="num" label="合同编号" min-width="140" />
         <el-table-column prop="name" label="合同名称" min-width="180" show-overflow-tooltip />
         <el-table-column label="会签状态" width="120">
-          <template #default="{ row }">
+          <template #default>
             <StatusTag type="success" text="会签完成" />
           </template>
         </el-table-column>
@@ -27,42 +27,45 @@
       </div>
     </div>
 
+    <!-- 会签意见汇总对话框 -->
     <el-dialog v-model="opinionDialogVisible" title="会签意见汇总" width="600px">
-      <div v-if="currentOpinions && currentOpinions.length" class="opinions-list">
-        <div v-for="(op, idx) in currentOpinions" :key="idx" class="opinion-item">
-          <div class="opinion-header">
-            <span class="opinion-user">{{ op.username || op.counterSignUser }}</span>
-            <span class="opinion-time">{{ op.time || op.createTime }}</span>
-          </div>
-          <div class="opinion-body">{{ op.content || op.opinion }}</div>
-        </div>
-      </div>
-      <EmptyState v-else description="暂无会签意见" />
+      <ProcessOpinions v-if="opinionContractId" :contract-id="opinionContractId" :filter-type="1"
+        title="会签意见" empty-text="暂无会签意见" />
       <template #footer>
         <el-button @click="opinionDialogVisible = false">关闭</el-button>
       </template>
     </el-dialog>
 
-    <el-dialog v-model="dialogVisible" title="定稿合同" width="650px" :close-on-click-modal="false">
-      <el-form :model="form" :rules="rules" ref="formRef" label-width="100px">
-        <el-form-item label="合同名称" prop="name">
-          <el-input v-model="form.name" placeholder="请输入合同名称" maxlength="100" show-word-limit />
-        </el-form-item>
-        <el-form-item label="客户" prop="customerId">
-          <el-select v-model="form.customerId" placeholder="请选择客户" filterable clearable class="full-width">
-            <el-option v-for="c in customers" :key="c.id" :label="c.name" :value="c.id" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="开始时间" prop="beginTime">
-          <el-date-picker v-model="form.beginTime" type="date" placeholder="选择开始时间" class="full-width" />
-        </el-form-item>
-        <el-form-item label="结束时间" prop="endTime">
-          <el-date-picker v-model="form.endTime" type="date" placeholder="选择结束时间" class="full-width" />
-        </el-form-item>
-        <el-form-item label="合同内容" prop="content">
-          <el-input v-model="form.content" type="textarea" :rows="6" placeholder="请输入合同内容" maxlength="5000" show-word-limit />
-        </el-form-item>
-      </el-form>
+    <!-- 定稿编辑对话框 -->
+    <el-dialog v-model="dialogVisible" title="定稿合同" width="750px" :close-on-click-modal="false">
+      <div class="dialog-content">
+        <!-- 附件预览 -->
+        <AttachmentPreview :contract-id="form.id" />
+
+        <!-- 会签意见 -->
+        <ProcessOpinions v-if="form.id" :contract-id="form.id" :filter-type="1"
+          title="会签意见" empty-text="暂无会签意见" />
+
+        <el-form :model="form" :rules="rules" ref="formRef" label-width="100px">
+          <el-form-item label="合同名称" prop="name">
+            <el-input v-model="form.name" placeholder="请输入合同名称" maxlength="100" show-word-limit />
+          </el-form-item>
+          <el-form-item label="客户" prop="customerId">
+            <el-select v-model="form.customerId" placeholder="请选择客户" filterable clearable class="full-width">
+              <el-option v-for="c in customers" :key="c.id" :label="c.name" :value="c.id" />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="开始时间" prop="beginTime">
+            <el-date-picker v-model="form.beginTime" type="date" placeholder="选择开始时间" class="full-width" />
+          </el-form-item>
+          <el-form-item label="结束时间" prop="endTime">
+            <el-date-picker v-model="form.endTime" type="date" placeholder="选择结束时间" class="full-width" />
+          </el-form-item>
+          <el-form-item label="合同内容" prop="content">
+            <el-input v-model="form.content" type="textarea" :rows="8" placeholder="请输入合同内容" maxlength="5000" show-word-limit />
+          </el-form-item>
+        </el-form>
+      </div>
       <template #footer>
         <el-button @click="dialogVisible = false">取消</el-button>
         <el-button type="primary" @click="submitFinalize" :loading="submitting">确认定稿</el-button>
@@ -80,6 +83,8 @@ import { getCustomers } from '@/api/customer'
 import PageHeader from '@/components/common/PageHeader.vue'
 import StatusTag from '@/components/common/StatusTag.vue'
 import EmptyState from '@/components/common/EmptyState.vue'
+import AttachmentPreview from '@/components/common/AttachmentPreview.vue'
+import ProcessOpinions from '@/components/common/ProcessOpinions.vue'
 
 const list = ref([])
 const loading = ref(false)
@@ -91,7 +96,7 @@ const opinionDialogVisible = ref(false)
 const submitting = ref(false)
 const formRef = ref(null)
 const customers = ref([])
-const currentOpinions = ref([])
+const opinionContractId = ref(null)
 
 const form = reactive({
   id: null,
@@ -130,19 +135,8 @@ const loadCustomers = async () => {
   } catch { /* handled */ }
 }
 
-const handleViewOpinions = async (row) => {
-  try {
-    const res = await getProcesses(row.id)
-    const processes = res.data || []
-    const countersignProcesses = processes.filter(p => p.type === 1)
-    currentOpinions.value = countersignProcesses.map(p => ({
-      username: p.username || '未知用户',
-      time: p.time,
-      content: p.content || '无意见'
-    }))
-  } catch {
-    currentOpinions.value = []
-  }
+const handleViewOpinions = (row) => {
+  opinionContractId.value = row.id
   opinionDialogVisible.value = true
 }
 
@@ -216,45 +210,9 @@ onMounted(() => {
   width: 100%;
 }
 
-.opinions-list {
-  max-height: 350px;
+.dialog-content {
+  max-height: 560px;
   overflow-y: auto;
-}
-
-.opinion-item {
-  padding: 14px;
-  background: var(--c-bg);
-  border-radius: var(--radius-sm);
-  margin-bottom: 10px;
-}
-
-.opinion-item:last-child {
-  margin-bottom: 0;
-}
-
-.opinion-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 8px;
-}
-
-.opinion-user {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--c-pri);
-}
-
-.opinion-time {
-  font-size: 12px;
-  color: var(--c-text2);
-}
-
-.opinion-body {
-  font-size: 13px;
-  color: var(--c-text);
-  line-height: 1.6;
-  white-space: pre-wrap;
-  word-break: break-all;
+  padding-right: 4px;
 }
 </style>

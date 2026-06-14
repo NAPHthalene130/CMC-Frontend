@@ -34,21 +34,122 @@
           <span class="info-badge">编号：{{ currentContract?.num || currentContract?.contractNum }}</span>
         </div>
 
+        <div class="user-search-bar">
+          <el-input v-model="searchKeyword" placeholder="搜索用户名..." clearable size="small" class="user-search-input">
+            <template #prefix>
+              <el-icon><Search /></el-icon>
+            </template>
+          </el-input>
+        </div>
+
         <el-tabs v-model="activeTab" class="assign-tabs">
           <el-tab-pane label="会签人员" name="countersign">
-            <el-transfer v-model="assignForm.countersignUserIds" :data="userOptions"
-              :titles="['可选人员', '已选会签人员']" filterable
-              :props="{ key: 'id', label: 'username' }" class="assign-transfer" />
+            <div class="transfer-layout">
+              <div class="transfer-panel-wrap">
+                <div class="panel-header panel-header-left">
+                  <el-icon><User /></el-icon>
+                  <span>未选人员</span>
+                </div>
+                <div class="panel-body">
+                  <el-checkbox-group v-model="assignForm.countersignUserIds">
+                    <el-checkbox v-for="u in availableUsers('countersignUserIds')" :key="u.id" :value="u.id" class="user-checkbox">
+                      {{ u.username }}
+                    </el-checkbox>
+                  </el-checkbox-group>
+                  <div v-if="availableUsers('countersignUserIds').length === 0" class="panel-empty">暂无可选人员</div>
+                </div>
+              </div>
+              <div class="transfer-arrows">
+                <el-icon :size="20"><DArrowRight /></el-icon>
+                <el-icon :size="20"><DArrowLeft /></el-icon>
+              </div>
+              <div class="transfer-panel-wrap">
+                <div class="panel-header panel-header-right">
+                  <span>已选会签人员</span>
+                  <el-icon><Select /></el-icon>
+                  <span class="panel-count">{{ assignForm.countersignUserIds.length }}</span>
+                </div>
+                <div class="panel-body">
+                  <el-tag v-for="uid in assignForm.countersignUserIds" :key="uid" closable class="user-tag"
+                    @close="removeUser('countersignUserIds', uid)">
+                    {{ getUserName(uid) }}
+                  </el-tag>
+                  <div v-if="assignForm.countersignUserIds.length === 0" class="panel-empty">暂未选择人员</div>
+                </div>
+              </div>
+            </div>
           </el-tab-pane>
           <el-tab-pane label="审批人员" name="approve">
-            <el-transfer v-model="assignForm.approveUserIds" :data="userOptions"
-              :titles="['可选人员', '已选审批人员']" filterable
-              :props="{ key: 'id', label: 'username' }" class="assign-transfer" />
+            <div class="transfer-layout">
+              <div class="transfer-panel-wrap">
+                <div class="panel-header panel-header-left">
+                  <el-icon><User /></el-icon>
+                  <span>未选人员</span>
+                </div>
+                <div class="panel-body">
+                  <el-checkbox-group v-model="assignForm.approveUserIds">
+                    <el-checkbox v-for="u in availableUsers('approveUserIds')" :key="u.id" :value="u.id" class="user-checkbox">
+                      {{ u.username }}
+                    </el-checkbox>
+                  </el-checkbox-group>
+                  <div v-if="availableUsers('approveUserIds').length === 0" class="panel-empty">暂无可选人员</div>
+                </div>
+              </div>
+              <div class="transfer-arrows">
+                <el-icon :size="20"><DArrowRight /></el-icon>
+                <el-icon :size="20"><DArrowLeft /></el-icon>
+              </div>
+              <div class="transfer-panel-wrap">
+                <div class="panel-header panel-header-right">
+                  <span>已选审批人员</span>
+                  <el-icon><Select /></el-icon>
+                  <span class="panel-count">{{ assignForm.approveUserIds.length }}</span>
+                </div>
+                <div class="panel-body">
+                  <el-tag v-for="uid in assignForm.approveUserIds" :key="uid" closable class="user-tag"
+                    @close="removeUser('approveUserIds', uid)">
+                    {{ getUserName(uid) }}
+                  </el-tag>
+                  <div v-if="assignForm.approveUserIds.length === 0" class="panel-empty">暂未选择人员</div>
+                </div>
+              </div>
+            </div>
           </el-tab-pane>
           <el-tab-pane label="签订人员" name="sign">
-            <el-transfer v-model="assignForm.signUserIds" :data="userOptions"
-              :titles="['可选人员', '已选签订人员']" filterable
-              :props="{ key: 'id', label: 'username' }" class="assign-transfer" />
+            <div class="transfer-layout">
+              <div class="transfer-panel-wrap">
+                <div class="panel-header panel-header-left">
+                  <el-icon><User /></el-icon>
+                  <span>未选人员</span>
+                </div>
+                <div class="panel-body">
+                  <el-checkbox-group v-model="assignForm.signUserIds">
+                    <el-checkbox v-for="u in availableUsers('signUserIds')" :key="u.id" :value="u.id" class="user-checkbox">
+                      {{ u.username }}
+                    </el-checkbox>
+                  </el-checkbox-group>
+                  <div v-if="availableUsers('signUserIds').length === 0" class="panel-empty">暂无可选人员</div>
+                </div>
+              </div>
+              <div class="transfer-arrows">
+                <el-icon :size="20"><DArrowRight /></el-icon>
+                <el-icon :size="20"><DArrowLeft /></el-icon>
+              </div>
+              <div class="transfer-panel-wrap">
+                <div class="panel-header panel-header-right">
+                  <span>已选签订人员</span>
+                  <el-icon><Select /></el-icon>
+                  <span class="panel-count">{{ assignForm.signUserIds.length }}</span>
+                </div>
+                <div class="panel-body">
+                  <el-tag v-for="uid in assignForm.signUserIds" :key="uid" closable class="user-tag"
+                    @close="removeUser('signUserIds', uid)">
+                    {{ getUserName(uid) }}
+                  </el-tag>
+                  <div v-if="assignForm.signUserIds.length === 0" class="panel-empty">暂未选择人员</div>
+                </div>
+              </div>
+            </div>
           </el-tab-pane>
         </el-tabs>
       </div>
@@ -63,9 +164,10 @@
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
+import { User, Select, DArrowRight, DArrowLeft, Search } from '@element-plus/icons-vue'
 import { getContracts } from '@/api/contract'
 import { getUsers } from '@/api/user'
-import { assignContract } from '@/api/process'
+import { assignContract, getProcesses } from '@/api/process'
 import PageHeader from '@/components/common/PageHeader.vue'
 import EmptyState from '@/components/common/EmptyState.vue'
 
@@ -79,6 +181,7 @@ const dialogVisible = ref(false)
 const currentContract = ref(null)
 const submitting = ref(false)
 const activeTab = ref('countersign')
+const searchKeyword = ref('')
 
 const assignForm = reactive({
   contractId: null,
@@ -95,6 +198,29 @@ const userOptions = computed(() => {
     label: u.username
   }))
 })
+
+const availableUsers = (field) => {
+  const selected = assignForm[field] || []
+  const kw = searchKeyword.value.trim().toLowerCase()
+  return users.value.filter(u => {
+    if (selected.includes(u.id)) return false
+    if (kw && !(u.username || '').toLowerCase().includes(kw)) return false
+    return true
+  })
+}
+
+const getUserName = (uid) => {
+  const u = users.value.find(x => x.id === uid)
+  return u ? u.username : '未知'
+}
+
+const removeUser = (field, uid) => {
+  const arr = assignForm[field]
+  if (arr) {
+    const idx = arr.indexOf(uid)
+    if (idx >= 0) arr.splice(idx, 1)
+  }
+}
 
 const fetchData = async () => {
   loading.value = true
@@ -118,8 +244,9 @@ const fetchUsers = async () => {
   }
 }
 
-const handleAssign = (row) => {
+const handleAssign = async (row) => {
   currentContract.value = row
+  // 先重置
   Object.assign(assignForm, {
     contractId: row.id,
     countersignUserIds: [],
@@ -127,7 +254,21 @@ const handleAssign = (row) => {
     signUserIds: []
   })
   activeTab.value = 'countersign'
+  searchKeyword.value = ''
   dialogVisible.value = true
+
+  // 加载已有分配，预填到右侧
+  try {
+    const res = await getProcesses(row.id)
+    const processes = res.data || []
+    // 只取待处理（state=0）的记录
+    const pending = processes.filter(p => p.state === 0)
+    assignForm.countersignUserIds = pending.filter(p => p.type === 1).map(p => p.userId).filter(Boolean)
+    assignForm.approveUserIds = pending.filter(p => p.type === 2).map(p => p.userId).filter(Boolean)
+    assignForm.signUserIds = pending.filter(p => p.type === 3).map(p => p.userId).filter(Boolean)
+  } catch {
+    // 加载失败则保持空
+  }
 }
 
 const submitAssign = async () => {
@@ -197,6 +338,14 @@ onMounted(() => {
   margin-top: 8px;
 }
 
+.user-search-bar {
+  margin-bottom: 12px;
+}
+
+.user-search-input {
+  max-width: 300px;
+}
+
 .assign-transfer {
   width: 100%;
 }
@@ -207,5 +356,97 @@ onMounted(() => {
 
 .assign-transfer :deep(.el-transfer-panel__body) {
   height: 260px;
+}
+
+/* 自定义左右选择面板 */
+.transfer-layout {
+  display: flex;
+  align-items: stretch;
+  gap: 16px;
+  min-height: 300px;
+}
+
+.transfer-arrows {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  color: var(--c-text2);
+}
+
+.transfer-panel-wrap {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--c-surface);
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  border-bottom: 1px solid var(--c-border);
+}
+
+.panel-header-left {
+  color: var(--c-text2);
+  background: var(--c-bg);
+}
+
+.panel-header-right {
+  color: var(--c-pri);
+  background: var(--c-pri-light, #eef2ff);
+}
+
+.panel-count {
+  margin-left: auto;
+  font-size: 12px;
+  color: var(--c-text2);
+  background: var(--c-bg);
+  padding: 1px 8px;
+  border-radius: 10px;
+}
+
+.panel-body {
+  flex: 1;
+  padding: 10px;
+  overflow-y: auto;
+  max-height: 280px;
+}
+
+.panel-empty {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  min-height: 80px;
+  font-size: 12px;
+  color: var(--c-text2);
+}
+
+.user-checkbox {
+  display: flex;
+  margin-bottom: 4px;
+  padding: 4px 6px;
+  border-radius: var(--radius-sm);
+  transition: background 0.15s;
+  width: 100%;
+}
+
+.user-checkbox:hover {
+  background: var(--c-bg);
+}
+
+.user-tag {
+  margin: 3px 4px;
+  cursor: pointer;
 }
 </style>

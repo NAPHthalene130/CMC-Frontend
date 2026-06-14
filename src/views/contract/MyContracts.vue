@@ -34,7 +34,7 @@
       </div>
     </div>
 
-    <el-dialog v-model="dialogVisible" title="合同详情" width="650px">
+    <el-dialog v-model="dialogVisible" title="合同详情" width="750px">
       <div v-if="currentRow" class="detail-content">
         <div class="detail-section">
           <div class="detail-row">
@@ -64,29 +64,18 @@
           <div class="detail-label-text">合同内容</div>
           <div class="detail-content-text">{{ currentRow.content || '暂无内容' }}</div>
         </div>
+
+        <!-- 合同附件 -->
+        <AttachmentPreview :contract-id="currentRow.id" />
+
+        <!-- 流程意见 -->
+        <ProcessOpinions :contract-id="currentRow.id" title="流程记录" empty-text="暂无流程记录" />
       </div>
       <template #footer>
         <el-button @click="dialogVisible = false">关闭</el-button>
         <el-button v-if="currentRow && currentRow.rejected" type="warning" @click="handleRedraft(currentRow); dialogVisible = false">
           重新提交
         </el-button>
-      </template>
-    </el-dialog>
-
-    <el-dialog v-model="processDialogVisible" title="流程记录" width="600px">
-      <div v-if="processes.length" class="process-list">
-        <div v-for="p in processes" :key="p.id" class="process-item">
-          <div class="process-header">
-            <span class="process-type" :class="'type-' + p.type">{{ typeName(p.type) }}</span>
-            <span class="process-user">{{ p.username || '未知用户' }}</span>
-            <span class="process-time">{{ p.time }}</span>
-          </div>
-          <div class="process-body" v-if="p.content">{{ p.content }}</div>
-        </div>
-      </div>
-      <EmptyState v-else description="暂无流程记录" />
-      <template #footer>
-        <el-button @click="processDialogVisible = false">关闭</el-button>
       </template>
     </el-dialog>
   </div>
@@ -100,6 +89,8 @@ import { getProcesses } from '@/api/process'
 import PageHeader from '@/components/common/PageHeader.vue'
 import StatusTag from '@/components/common/StatusTag.vue'
 import EmptyState from '@/components/common/EmptyState.vue'
+import AttachmentPreview from '@/components/common/AttachmentPreview.vue'
+import ProcessOpinions from '@/components/common/ProcessOpinions.vue'
 
 const list = ref([])
 const loading = ref(false)
@@ -108,15 +99,12 @@ const page = ref(1)
 const pageSize = 10
 const dialogVisible = ref(false)
 const currentRow = ref(null)
-const processDialogVisible = ref(false)
-const processes = ref([])
 
 const statusMap = { 1: 'draft', 2: 'countresigning', 3: 'approving', 4: 'warning', 5: 'success' }
 const statusTextMap = { 1: '起草', 2: '会签中', 3: '审批中', 4: '待签订', 5: '已签订' }
 
 const statusType = (state) => statusMap[state] || 'info'
 const statusText = (state) => statusTextMap[state] || '未知'
-const typeName = (t) => (t === 1 ? '会签' : t === 2 ? '审批' : '签订')
 
 const fetchData = async () => {
   loading.value = true
@@ -141,15 +129,9 @@ const fetchData = async () => {
   }
 }
 
-const handleView = async (row) => {
+const handleView = (row) => {
   currentRow.value = row
   dialogVisible.value = true
-  try {
-    const res = await getProcesses(row.id)
-    processes.value = res.data || []
-  } catch {
-    processes.value = []
-  }
 }
 
 const handleRedraft = async (row) => {
@@ -240,61 +222,6 @@ onMounted(() => {
   padding: 16px;
   background: var(--c-bg);
   border-radius: var(--radius-sm);
-  white-space: pre-wrap;
-  word-break: break-all;
-}
-
-.process-list {
-  max-height: 350px;
-  overflow-y: auto;
-}
-
-.process-item {
-  padding: 12px 14px;
-  background: var(--c-bg);
-  border-radius: var(--radius-sm);
-  margin-bottom: 10px;
-}
-
-.process-item:last-child {
-  margin-bottom: 0;
-}
-
-.process-header {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 6px;
-}
-
-.process-type {
-  font-size: 11px;
-  font-weight: 700;
-  padding: 1px 8px;
-  border-radius: 4px;
-  color: #fff;
-}
-
-.type-1 { background: #0c4a6e; }
-.type-2 { background: #7c3aed; }
-.type-3 { background: #059669; }
-
-.process-user {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--c-pri);
-}
-
-.process-time {
-  font-size: 12px;
-  color: var(--c-text2);
-  margin-left: auto;
-}
-
-.process-body {
-  font-size: 13px;
-  color: var(--c-text);
-  line-height: 1.6;
   white-space: pre-wrap;
   word-break: break-all;
 }

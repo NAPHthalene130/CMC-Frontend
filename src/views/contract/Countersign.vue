@@ -10,7 +10,7 @@
           <template #default="{ row }">{{ row.createTime || row.time }}</template>
         </el-table-column>
         <el-table-column label="状态" width="120">
-          <template #default="{ row }">
+          <template #default>
             <StatusTag type="countresigning" text="待会签" />
           </template>
         </el-table-column>
@@ -29,7 +29,7 @@
       </div>
     </div>
 
-    <el-dialog v-model="dialogVisible" title="会签合同" width="600px" :close-on-click-modal="false">
+    <el-dialog v-model="dialogVisible" title="会签合同" width="720px" :close-on-click-modal="false">
       <div class="dialog-content">
         <div class="info-section">
           <div class="info-row">
@@ -46,10 +46,20 @@
           </div>
         </div>
 
+        <!-- 合同内容预览 -->
         <div class="content-preview">
-          <div class="preview-label">合同内容预览</div>
+          <div class="preview-label">
+            <el-icon><Reading /></el-icon>
+            合同内容预览
+          </div>
           <div class="preview-text">{{ currentRow?.content || currentRow?.contractContent || '暂无内容' }}</div>
         </div>
+
+        <!-- 合同附件预览 -->
+        <AttachmentPreview :contract-id="contractId" />
+
+        <!-- 流程意见历史 -->
+        <ProcessOpinions :contract-id="contractId" title="历史意见" empty-text="暂无历史意见" />
 
         <el-form :model="countersignForm" :rules="countersignRules" ref="countersignFormRef" label-width="90px" class="opinion-form">
           <el-form-item label="会签意见" prop="opinion">
@@ -68,12 +78,15 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
+import { Reading } from '@element-plus/icons-vue'
 import { getPending, countersign } from '@/api/process'
 import PageHeader from '@/components/common/PageHeader.vue'
 import StatusTag from '@/components/common/StatusTag.vue'
 import EmptyState from '@/components/common/EmptyState.vue'
+import AttachmentPreview from '@/components/common/AttachmentPreview.vue'
+import ProcessOpinions from '@/components/common/ProcessOpinions.vue'
 
 const list = ref([])
 const loading = ref(false)
@@ -84,6 +97,8 @@ const dialogVisible = ref(false)
 const currentRow = ref(null)
 const submitting = ref(false)
 const countersignFormRef = ref(null)
+
+const contractId = computed(() => currentRow.value?.contractId || currentRow.value?.id)
 
 const countersignForm = reactive({
   opinion: ''
@@ -157,8 +172,9 @@ onMounted(() => {
 }
 
 .dialog-content {
-  max-height: 450px;
+  max-height: 520px;
   overflow-y: auto;
+  padding-right: 4px;
 }
 
 .info-section {
@@ -194,8 +210,12 @@ onMounted(() => {
 }
 
 .preview-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   font-size: 13px;
-  color: var(--c-text2);
+  font-weight: 600;
+  color: var(--c-text);
   margin-bottom: 8px;
 }
 

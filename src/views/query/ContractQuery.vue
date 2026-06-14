@@ -35,7 +35,7 @@
       </div>
     </div>
 
-    <el-dialog v-model="dialogVisible" title="合同详情" width="650px">
+    <el-dialog v-model="dialogVisible" title="合同详情" width="750px">
       <div v-if="currentRow" class="detail-content">
         <div class="detail-section">
           <div class="detail-row">
@@ -65,6 +65,12 @@
           <div class="detail-label-text">合同内容</div>
           <div class="detail-content-text">{{ currentRow.content || '暂无内容' }}</div>
         </div>
+
+        <!-- 合同附件 -->
+        <AttachmentPreview :contract-id="currentRow.id" />
+
+        <!-- 流程意见 -->
+        <ProcessOpinions :contract-id="currentRow.id" title="流程记录" empty-text="暂无流程记录" />
       </div>
       <template #footer>
         <el-button @click="dialogVisible = false">关闭</el-button>
@@ -80,6 +86,8 @@ import PageHeader from '@/components/common/PageHeader.vue'
 import SearchBar from '@/components/common/SearchBar.vue'
 import StatusTag from '@/components/common/StatusTag.vue'
 import EmptyState from '@/components/common/EmptyState.vue'
+import AttachmentPreview from '@/components/common/AttachmentPreview.vue'
+import ProcessOpinions from '@/components/common/ProcessOpinions.vue'
 
 const list = ref([])
 const loading = ref(false)

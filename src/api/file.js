@@ -11,3 +11,11 @@ export const getAttachments = (contractId) =>
 
 export const deleteAttachment = (id) =>
   request.delete(`/files/${id}`)
+
+/** Get preview URL for a file (for img src / iframe src) */
+export const getPreviewUrl = (id) =>
+  `/api/files/preview/${id}`
+
+/** Get download URL for a file */
+export const getDownloadUrl = (id) =>
+  `/api/files/download/${id}`

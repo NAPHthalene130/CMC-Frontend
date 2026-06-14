@@ -33,11 +33,11 @@
 
         <el-form-item label="附件">
           <el-upload ref="uploadRef" :auto-upload="false" :limit="1" :on-change="handleFileChange" :on-remove="handleFileRemove"
-            accept=".doc,.docx,.jpg,.jpeg,.png,.bmp,.gif" drag>
+            accept=".doc,.docx,.pdf,.jpg,.jpeg,.png,.bmp,.gif" drag>
             <el-icon class="upload-icon"><UploadFilled /></el-icon>
             <div class="upload-text">将文件拖到此处或<em>点击上传</em></div>
             <template #tip>
-              <div class="upload-tip">支持 doc、jpg、png、bmp、gif 格式，单个文件</div>
+              <div class="upload-tip">支持 doc、docx、pdf、jpg、png、bmp、gif 格式，单个文件</div>
             </template>
           </el-upload>
         </el-form-item>
