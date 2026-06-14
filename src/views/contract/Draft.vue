@@ -40,6 +40,10 @@
               <div class="upload-tip">支持 doc、docx、pdf、jpg、png、bmp、gif 格式，单个文件</div>
             </template>
           </el-upload>
+          <div v-if="uploading || uploadProgress > 0" class="upload-progress-wrap">
+            <el-progress :percentage="uploadProgress" :status="uploadProgress === 100 ? 'success' : ''" :stroke-width="8" />
+            <span class="progress-hint" v-if="uploading">正在上传附件，请勿关闭页面…</span>
+          </div>
         </el-form-item>
 
         <el-form-item>
@@ -77,13 +81,15 @@ import { ElMessage } from 'element-plus'
 import { draftContract } from '@/api/contract'
 import { getCustomers } from '@/api/customer'
 import { getTemplateList } from '@/api/template'
-import { uploadFile } from '@/api/file'
+import { uploadFileChunked, generateFileId } from '@/utils/chunkUpload'
 import PageHeader from '@/components/common/PageHeader.vue'
 import StatusTag from '@/components/common/StatusTag.vue'
 
 const formRef = ref(null)
 const uploadRef = ref(null)
 const submitting = ref(false)
+const uploading = ref(false)
+const uploadProgress = ref(0)
 const customers = ref([])
 const templates = ref([])
 const uploadedFile = ref(null)
@@ -154,17 +160,20 @@ const applyTemplate = (tpl) => {
 }
 
 const handleFileChange = (file) => {
+  file.raw.fileId = generateFileId()
   uploadedFile.value = file.raw
 }
 
 const handleFileRemove = () => {
   uploadedFile.value = null
+  uploadProgress.value = 0
 }
 
 const handleReset = () => {
   formRef.value?.resetFields()
   uploadRef.value?.clearFiles()
   uploadedFile.value = null
+  uploadProgress.value = 0
 }
 
 const handleSubmit = async () => {
@@ -182,10 +191,18 @@ const handleSubmit = async () => {
     }
     const res = await draftContract(contractData)
     if (uploadedFile.value && res.data?.id) {
-      const fileFormData = new FormData()
-      fileFormData.append('file', uploadedFile.value)
-      fileFormData.append('contractId', res.data.id)
-      await uploadFile(fileFormData)
+      uploading.value = true
+      uploadProgress.value = 0
+      try {
+        await uploadFileChunked(uploadedFile.value, {
+          contractId: res.data.id,
+          onProgress: (pct) => {
+            uploadProgress.value = pct
+          }
+        })
+      } finally {
+        uploading.value = false
+      }
     }
     ElMessage.success('合同草稿创建成功！')
     handleReset()
@@ -265,6 +282,17 @@ onMounted(() => {
   font-size: 12px;
   color: var(--c-text2);
   margin-top: 4px;
+}
+
+.upload-progress-wrap {
+  margin-top: 10px;
+}
+
+.progress-hint {
+  display: block;
+  font-size: 12px;
+  color: var(--c-pri);
+  margin-top: 6px;
 }
 
 .template-section {
