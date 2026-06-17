@@ -1,67 +1,77 @@
 <template>
-  <div class="login-page">
-    <div class="login-hero">
+  <div class="register-page">
+    <div class="register-hero">
       <div class="hero-content">
         <div class="hero-icon">
           <svg viewBox="0 0 48 48" width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5">
-            <rect x="8" y="6" width="32" height="36" rx="3" />
-            <line x1="16" y1="16" x2="32" y2="16" />
-            <line x1="16" y1="22" x2="28" y2="22" />
-            <line x1="16" y1="28" x2="24" y2="28" />
-            <circle cx="34" cy="32" r="6" />
-            <path d="M32 32 l1.5 1.5 l3 -3" />
+            <circle cx="24" cy="14" r="8" />
+            <path d="M8 40 c0 -8.84 7.16 -16 16 -16 s16 7.16 16 16" />
+            <line x1="24" y1="28" x2="24" y2="38" />
+            <line x1="20" y1="34" x2="28" y2="34" />
           </svg>
         </div>
-        <h1>合同管理系统</h1>
-        <p class="hero-sub">Contract Management System</p>
-        <div class="hero-features">
-          <span>起草 · 会签 · 定稿</span>
-          <span>审批 · 签订 · 归档</span>
-        </div>
+        <h1>创建账号</h1>
+        <p class="hero-sub">注册成为合同管理系统用户</p>
       </div>
       <div class="hero-pattern"></div>
     </div>
 
-    <div class="login-form">
+    <div class="register-form">
       <div class="form-card">
-        <h2>欢迎登录</h2>
-        <p class="form-sub">请输入您的账户信息</p>
+        <h2>用户注册</h2>
+        <p class="form-sub">填写以下信息完成注册</p>
 
-        <el-form :model="form" :rules="rules" ref="formRef" @keyup.enter="handleLogin">
-          <el-form-item prop="username">
+        <el-form :model="form" :rules="rules" ref="formRef" label-position="top">
+          <!-- 用户名 -->
+          <el-form-item prop="username" label="用户名">
             <el-input
               v-model="form.username"
-              placeholder="请输入用户名"
+              placeholder="以字母开头，至少4位（可用字母、数字、下划线）"
               :prefix-icon="User"
               size="large"
             />
           </el-form-item>
-          <el-form-item prop="password">
+
+          <!-- 密码 -->
+          <el-form-item prop="password" label="密码">
             <el-input
               v-model="form.password"
               type="password"
-              placeholder="请输入密码"
+              placeholder="至少6位，建议使用数字、字母混合"
               :prefix-icon="Lock"
               show-password
               size="large"
             />
           </el-form-item>
+
+          <!-- 确认密码 -->
+          <el-form-item prop="confirmPassword" label="确认密码">
+            <el-input
+              v-model="form.confirmPassword"
+              type="password"
+              placeholder="请再次输入密码"
+              :prefix-icon="Lock"
+              show-password
+              size="large"
+            />
+          </el-form-item>
+
           <el-form-item>
             <el-button
               type="primary"
               class="submit-btn"
               :loading="loading"
-              @click="handleLogin"
+              @click="handleRegister"
               size="large"
             >
-              {{ loading ? '登录中...' : '登 录' }}
+              {{ loading ? '注册中...' : '提 交' }}
             </el-button>
           </el-form-item>
         </el-form>
 
         <div class="form-footer">
-          还没有账号？
-          <router-link to="/register" class="link">立即注册</router-link>
+          已有账号？
+          <router-link to="/login" class="link">返回登录</router-link>
         </div>
       </div>
     </div>
@@ -72,54 +82,61 @@
 import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
-import { useTabsStore } from '@/stores/tabs'
 import { User, Lock } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 
 const router = useRouter()
 const authStore = useAuthStore()
-const tabsStore = useTabsStore()
 const formRef = ref(null)
 const loading = ref(false)
 
 const form = reactive({
   username: '',
-  password: ''
+  password: '',
+  confirmPassword: ''
 })
+
+const validateConfirmPassword = (rule, value, callback) => {
+  if (value === '') {
+    callback(new Error('请再次输入密码'))
+  } else if (value !== form.password) {
+    callback(new Error('两次输入的密码不一致'))
+  } else {
+    callback()
+  }
+}
 
 const rules = {
   username: [
-    { required: true, message: '请输入用户名', trigger: 'blur' }
+    { required: true, message: '请输入用户名', trigger: 'blur' },
+    { pattern: /^[a-zA-Z][a-zA-Z0-9_]{3,}$/, message: '须以字母开头，至少4位（可用字母、数字、下划线）', trigger: 'blur' }
   ],
   password: [
     { required: true, message: '请输入密码', trigger: 'blur' },
     { min: 6, message: '密码至少 6 位', trigger: 'blur' }
+  ],
+  confirmPassword: [
+    { required: true, validator: validateConfirmPassword, trigger: 'blur' }
   ]
 }
 
-const roleRoute = {
-  ADMIN: '/home',
-  OPERATOR: '/home'
-}
-
-const handleLogin = async () => {
+const handleRegister = async () => {
   const valid = await formRef.value.validate().catch(() => false)
   if (!valid) return
 
   loading.value = true
   try {
-    await authStore.login({
+    await authStore.register({
       username: form.username,
-      password: form.password
+      password: form.password,
+      confirmPassword: form.confirmPassword
     })
-    ElMessage.success('登录成功')
-    try { await authStore.fetchUserInfo() } catch { /* ignore */ }
-    tabsStore.closeAllTabs()
-    const role = authStore.role || ''
-    const path = roleRoute[role] || '/home'
-    router.push(path)
+    ElMessage.success('注册成功，即将跳转到登录页')
+    setTimeout(() => {
+      router.push('/login')
+    }, 1200)
   } catch (err) {
-    ElMessage.error(err?.response?.msg || err?.message || '登录失败，请检查用户名和密码')
+    ElMessage.error(err?.response?.data?.msg || err?.message || '注册失败，请稍后重试')
   } finally {
     loading.value = false
   }
@@ -127,14 +144,14 @@ const handleLogin = async () => {
 </script>
 
 <style scoped>
-.login-page {
+.register-page {
   display: flex;
   min-height: 100vh;
   background: var(--c-bg);
 }
 
 /* ===== 左侧品牌区 ===== */
-.login-hero {
+.register-hero {
   flex: 1;
   background: linear-gradient(160deg, #1e3a2f 0%, #2d6a4f 50%, #40916c 100%);
   display: flex;
@@ -142,14 +159,14 @@ const handleLogin = async () => {
   justify-content: center;
   position: relative;
   overflow: hidden;
-  min-width: 420px;
+  min-width: 380px;
 }
 .hero-pattern {
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(circle at 20% 80%, rgba(82, 183, 136, 0.15) 0%, transparent 50%),
-    radial-gradient(circle at 80% 20%, rgba(45, 106, 79, 0.2) 0%, transparent 50%),
+    radial-gradient(circle at 30% 70%, rgba(82, 183, 136, 0.15) 0%, transparent 50%),
+    radial-gradient(circle at 70% 30%, rgba(45, 106, 79, 0.2) 0%, transparent 50%),
     repeating-linear-gradient(
       45deg,
       transparent,
@@ -177,31 +194,22 @@ const handleLogin = async () => {
 .hero-sub {
   font-size: 13px;
   opacity: 0.55;
-  letter-spacing: 4px;
-  text-transform: uppercase;
-  margin-bottom: 32px;
-}
-.hero-features {
-  display: flex;
-  gap: 24px;
-  justify-content: center;
-  font-size: 12px;
-  opacity: 0.45;
-  letter-spacing: 2px;
+  letter-spacing: 3px;
 }
 
 /* ===== 右侧表单区 ===== */
-.login-form {
+.register-form {
   flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 40px;
-  min-width: 380px;
+  padding: 32px 40px;
+  min-width: 440px;
   background: var(--c-surface);
+  overflow-y: auto;
 }
 .form-card {
-  width: 360px;
+  width: 420px;
 }
 .form-card h2 {
   font-size: 22px;
@@ -212,7 +220,7 @@ const handleLogin = async () => {
 .form-sub {
   font-size: 13px;
   color: var(--c-text2);
-  margin-bottom: 32px;
+  margin-bottom: 28px;
 }
 
 .submit-btn {
@@ -227,7 +235,7 @@ const handleLogin = async () => {
   text-align: center;
   font-size: 13px;
   color: var(--c-text2);
-  margin-top: 16px;
+  margin-top: 8px;
 }
 .link {
   color: var(--c-pri2);
@@ -240,9 +248,10 @@ const handleLogin = async () => {
 }
 
 @media (max-width: 860px) {
-  .login-page { flex-direction: column; }
-  .login-hero { min-width: unset; padding: 48px 24px; }
-  .login-hero h1 { font-size: 22px; letter-spacing: 4px; }
-  .login-form { min-width: unset; padding: 24px; }
+  .register-page { flex-direction: column; }
+  .register-hero { min-width: unset; padding: 40px 24px; }
+  .register-hero h1 { font-size: 22px; letter-spacing: 4px; }
+  .register-form { min-width: unset; padding: 24px; }
+  .form-card { width: 100%; }
 }
 </style>

@@ -6,20 +6,27 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
-    "vue": "^3.4.27",
-    "vue-router": "^4.3.2",
-    "pinia": "^2.1.7",
-    "element-plus": "^2.7.5",
+    "@element-plus/icons-vue": "^2.3.1",
     "axios": "^1.7.2",
-    "@element-plus/icons-vue": "^2.3.1"
+    "echarts": "^5.5.0",
+    "element-plus": "^2.7.5",
+    "mammoth": "^1.12.0",
+    "pinia": "^2.1.7",
+    "vue": "^3.4.27",
+    "vue-router": "^4.3.2"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.0.4",
-    "vite": "^5.2.12",
+    "@vue/test-utils": "^2.4.10",
+    "jsdom": "^29.1.1",
+    "unplugin-auto-import": "^0.17.6",
     "unplugin-vue-components": "^0.27.0",
-    "unplugin-auto-import": "^0.17.6"
+    "vite": "^5.2.12",
+    "vitest": "^4.1.7"
   }
 }
