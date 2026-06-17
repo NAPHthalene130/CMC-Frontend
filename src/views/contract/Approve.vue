@@ -55,7 +55,7 @@
             <el-icon><Reading /></el-icon>
             合同内容
           </div>
-          <div class="preview-text">{{ currentRow?.content || '暂无内容' }}</div>
+          <div class="preview-text">{{ currentRow?.contractContent || '暂无内容' }}</div>
         </div>
 
         <!-- 合同附件预览 -->
